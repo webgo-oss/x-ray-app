@@ -134,6 +134,11 @@ app.get('/infomation', (req, res) => {
   res.render('info', { user: req.session.user || null });
 });
 
+app.get('/nearby-doctors', (req, res) => {
+  if (!req.session.user) return res.redirect('/');
+  res.render('nearby', { user: req.session.user });
+});
+
 app.get('/about', (req, res) => {
   res.render('about_me', { user: req.session.user || null });
 });

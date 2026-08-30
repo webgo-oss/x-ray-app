@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nearby Doctors & Hospitals</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="./stylesheets/nearby.css">
+</head>
+<body>
+  <div class="nb-container">
+    <div class="nb-header">
+      <a href="/dashboard" class="nb-back">&larr; Back</a>
+      <h2>Nearby Doctors &amp; Hospitals</h2>
+      <div class="nb-filters">
+        <button class="nb-chip active" data-type="all">All</button>
+        <button class="nb-chip" data-type="hospital">Hospitals</button>
+        <button class="nb-chip" data-type="clinic">Clinics</button>
+        <button class="nb-chip" data-type="doctors">Doctors</button>
+        <button class="nb-chip" data-type="pharmacy">Pharmacy</button>
+      </div>
+      <div class="nb-radius">
+        <label for="radiusSelect">Radius</label>
+        <select id="radiusSelect">
+          <option value="2000">2 km</option>
+          <option value="5000" selected>5 km</option>
+          <option value="10000">10 km</option>
+          <option value="20000">20 km</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="nb-body">
+      <div id="map" class="nb-map"></div>
+
+      <div class="nb-list-panel">
+        <div id="nb-loc-debug" class="nb-loc-debug"></div>
+        <div id="nb-status" class="nb-status">Getting your location…</div>
+        <div id="nb-list" class="nb-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="./javascripts/nearby.js" defer></script>
+</body>
+</html>
