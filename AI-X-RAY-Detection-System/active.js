@@ -7,6 +7,7 @@ const path = require('path');
 const axios = require("axios");
 const fs = require("fs");
 const FormData = require("form-data");
+require('dotenv').config();
 const connection = require('./config/db');
 const app = express();
 
@@ -24,8 +25,20 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
+const xrayUpload = multer({
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB max
+  fileFilter: (req, file, cb) => {
+    const allowed = /jpeg|jpg|png|bmp|dicom|dcm/i;
+    const extOk = allowed.test(path.extname(file.originalname));
+    const mimeOk = /^image\//.test(file.mimetype);
+    if (extOk && mimeOk) return cb(null, true);
+    cb(new Error('Only image files (jpg, png, bmp) are allowed for x-ray uploads'));
+  }
+});
+
 app.use(session({
-  secret: 'project@79',
+  secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false
 }));
@@ -40,7 +53,7 @@ function getValidUrl(url) {
 app.get('/', (req, res) => res.render('login'));
 
 app.get('/dashboard', (req, res) => {
-  if (!req.session.user) return res.redirect('/login');
+  if (!req.session.user) return res.redirect('/');
 
   const sql = `SELECT * FROM history WHERE user_id = ? ORDER BY created_at DESC`;
   connection.query(sql, [req.session.user.id], (err, history) => {
@@ -170,7 +183,15 @@ app.post('/updateprofile', upload.single('profilepic'), (req, res) => {
 
 
 
-app.post('/analyze', upload.single('xray'), async (req, res) => {
+app.post('/analyze', (req, res, next) => {
+  xrayUpload.single('xray')(req, res, (err) => {
+    if (err) {
+      var error = err.message || "Upload failed";
+      return res.render('error', { error });
+    }
+    next();
+  });
+}, async (req, res) => {
   try {
     if (!req.file) return res.status(400).send('No file uploaded');
     if (!req.session.user) return res.status(401).send('Not logged in');
