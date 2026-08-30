@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>X-RAY DETECTION</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Abel&family=Anton&family=Architects+Daughter&family=Archivo+Black&family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Bungee+Inline&family=Cedarville+Cursive&family=Comic+Neue:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Cutive+Mono&family=Edu+AU+VIC+WA+NT+Arrows:wght@400..700&family=Encode+Sans:wght@100..900&family=Fjalla+One&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Josefin+Sans:ital,wght@0,100..700;1,100..700&family=Kenia&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Major+Mono+Display&family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&family=Montserrat+Underline:ital,wght@0,100..900;1,100..900&family=Mulish:ital,wght@0,200..1000;1,200..1000&family=Nabla&family=Noto+Serif:ital,wght@0,100..900;1,100..900&family=Oswald:wght@200..700&family=Outfit:wght@100..900&family=Oxanium:wght@200..800&family=Parkinsans:wght@300..800&family=Playwrite+FR+Moderne:wght@100..400&family=Playwrite+HR+Lijeva:wght@100..400&family=Playwrite+ID+Guides&family=Proza+Libre:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500;1,600;1,700;1,800&family=Righteous&family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&family=Rubik:ital,wght@0,300..900;1,300..900&family=Six+Caps&family=Slabo+27px&family=Sour+Gummy:ital,wght@0,100..900;1,100..900&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&family=Varela+Round&family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+<link rel="stylesheet" href="./stylesheets/mainstyle.css">
+</head>
+<body>
+
+  <div class="main-container" id="model">
+    <canvas id="three-canvas"></canvas>
+
+    <div class="sub-container-one">
+      <div class="left-bar">
+        <h1>x-ray</h1>
+        <div class="desc">AI<br><strong>x-ray detection</strong></div>
+        <div class="os">Real-time results</div>
+      </div>
+
+      <div class="right-section">
+        <div class="topnav">
+    <div onclick="window.location.href='#upload'">uploads</div>
+    <div onclick="window.location.href='#about'">about</div>
+    <div class="profile-img" onclick="window.location.href='dashboard'">
+      <img src="/uploads/<%= user.profile_image || './images/default.png' %>" alt="">
+    </div>
+  </div>
+  <div class="hamburger" onclick="toggleSidebar()">☰</div>
+  <div class="sidebar" id="sidebar">
+    <div class="close-btn" onclick="toggleSidebar()">✖</div>
+    <div class="sidebar-profile"  onclick="window.location.href='dashboard'">
+      <img src="/uploads/<%= user.profile_image || './images/default.png' %>" alt="">
+      <div class="username"><%= user.name %></div>
+    </div>
+    <div class="sidebar-links">
+      <div onclick="window.location.href='#upload'">uploads</div>
+      <div  onclick="window.location.href='#about'">about</div>
+    </div>
+  </div>
+
+        <div class="thumbs">
+          <div class="thumb"></div>
+          <div class="thumb red"></div>
+        </div>
+
+        <div class="numbered-info">
+          <div class="big-number">97</div>
+          <div class="number-text">
+           Our AI-powered system delivers fast, accurate bone fracture detection from X-rays—helping doctors make quicker decisions and patients get the care they need without delay.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sub-container-2">
+      <div class="ultra-sub-con">
+        <div class="con-for-info-left">
+          <h4>Fracture Detection</h4>
+          <h1> Hand </h1>
+          <p>The human hand consists of 27 small bones — making it one of the most intricate areas to scan and diagnose. Our AI is trained on thousands of hand X-rays to accurately identify fractures, dislocations, and bone deformities, ensuring you never miss a critical diagnosis.</p>
+          <table>
+            <tr>
+              <td>
+                <h4> Phalanges</h4>
+              </td>
+              <td>
+                <h4>Carpals </h4>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <p>Finger bones
+→ Finds fine cracks</p>
+              </td>
+              <td>
+                <p>Wrist bones
+→ Detects hidden damage</p>
+              </td>
+            </tr>
+          </table>
+
+        </div>
+      </div>
+      <div class="ultra-sub-con" style="justify-content: end;">
+         <div class="con-for-info-right">
+           <div class="slider-wrapper">
+          <div class="slider-con" id="slider">
+          <img src="./images/hand.png">
+          <img src="./images/elbow.png">
+          <img src="./images/knee.png">
+          </div>
+          </div>
+          <p>“From hand to elbow to knee, our AI scans X-rays with intelligent segmentation and fracture detection, delivering a heatmap, confidence score, and diagnosis support in seconds.”</p>
+          <span>--ai detect</span>
+          <button class="but" onclick="location.href='#upload'">Upload X-Rays →</button>
+           <div class="slide-buttons">
+    <button onclick="slideLeft()">⟵</button>
+    <button onclick="slideRight()">⟶</button>
+  </div>
+         </div>
+      </div>
+    </div>
+  </div>
+  <div class="card_environvement">
+  <div class="card">
+    <h3>Supported Joints</h3>
+    <p>Currently supports X-rays of hands, elbows, and knees for fracture detection.</p>
+    <a href="/infomation#joints">Learn more</a>
+  </div>
+  <div class="card">
+    <h3>AI-Powered Detection</h3>
+    <p>Analyze your uploaded X-ray in real-time to identify possible fractures instantly.</p>
+    <a href="/infomation#AI-Powered">Learn more</a>
+  </div>
+  <div class="card">
+    <h3>Visual Heatmap Report</h3>
+    <p>View a color-coded heatmap highlighting areas of concern on your X-ray image.</p>
+    <a href="/infomation#heatmaps">Learn more</a>
+  </div>
+  <div class="card">
+    <h3>Secure & Private</h3>
+    <p>Your X-rays are never stored. Analysis is fast, local, and confidential.</p>
+    <a href="/infomation#secure">Learn more</a>
+  </div>
+  </div>
+  <div class="heading" id="ai-block-info">
+    <h1>accuracy of our model</h1>
+  </div>
+  <div class="ai-info-block">
+    <div class="ai-block" id="ai-block">
+      <div class="small-blocks">
+        <div class="ai-model-info">
+  <span class="label">Trained on</span>
+  <div class="progress-row">
+    <span> 50,000+ X-rays</span>
+    <progress value="100" max="100"></progress>
+  </div>
+
+  <span class="label">Precision</span>
+  <div class="progress-row">
+    <span> 91.3%</span>
+    <progress value="91.3" max="100"></progress>
+  </div>
+
+  <span class="label">Detects Parts</span>
+  <div class="detect-parts">Elbow, Hand, Knees</div>
+        </div>
+        <div class="ai-model-info" style="display: flex;justify-content: center;align-items: end;">
+          <div class="div">
+           <span class="span1">AI Model</span> <span class="span2">Accuracy </span>
+          </div>
+          <span class="span3"> 97.6% </span>
+        </div>  
+      </div>
+    </div>
+    <!-- <div class="ai-content">
+     <div class="profile-card">
+  <img src="STEPS.png" alt="Profile Image"> 
+  <div class="profile-info">
+  <span class="span2" style="text-transform: capitalize;">work flow</span>
+ <ul>
+    <li>Upload X-ray→</li>
+    <li>AI Analyzes→</li>
+    <li>Heatmap & Prediction→</li>
+    <li>Download Report (PDF)→</li>
+  </ul>  </div>
+</div>
+    </div> -->
+  </div>
+  <div class="heading">
+    <h1>upload x-rays</h1>
+  </div>
+  <div class="section2" id="upload">
+    <div class="left_file_block file_block">
+      <div class="sub_file_block sub1">
+        <div class="child_block_one">
+           <div class="uploads">
+           <span>upload x-rays</span>
+           <p> Upload a clear X-ray image (JPG or PNG) for quick analysis. Your data stays private</p>
+           <form action="/analyze" method="post" enctype="multipart/form-data">
+           <input type="file" id="file" name="xray" accept="image/*" required>
+           <label for="file" class="custom-label">Upload X-Ray</label>
+             <button type="submit" class="custom-label-ana">Analyze<i class="bi bi-arrow-right"></i></button>
+           </form>
+           </div>
+           <div class="images_upload">
+ <img src="./images/x-ray.png" >
+           </div>
+        </div>
+      </div>
+      <div class="sub_file_block sub2">
+          <div class="child_block" id="image_preview">
+            <img src="" alt="your uploaded image" id="imagePreview">
+          </div>
+        <div class="child_block">
+          <div class="time_block">
+            <div class="div1">
+            <h1 id="date"></h1>
+            <div class="div2">
+            <span id="month"></span>
+            <span id="year"></span>
+            </div>
+            </div>
+            <i class="bi bi-arrow-up-right-circle"></i>
+          </div>
+          <div class="div3">
+            <span id="fileName"></span>
+            <span id="fileTime"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="right_file_block file_block">
+       <div class="child_block_one" id="threeContainer"></div>
+    </div>
+  </div>
+  <div class="heading" id="feacture">
+  <h1>feacture provides </h1>
+</div>
+<section class="feacture">
+  <div class="card-grid">
+
+    <div class="flip-card" style="margin-left: 3%;">
+      <div class="flip-inner">
+        <div class="diagnosis-card chest-bg">
+          <div>
+            <h2>X-Ray Disclaimer</h2>
+            <div class="learn-link">→ Learn More</div>
+          </div>
+        </div>
+        <div class="card-back">
+                              <div class="logo"><img src="./images/computer.png"></div>
+
+<div class="name">Disclaimer</div>
+<div class="role">Educational Use Only</div>
+<div class="description">
+  This AI-generated report is intended solely for educational and informational purposes. It should not be used as a substitute for professional medical diagnosis, advice, or treatment.
+</div>
+            </div>
+      </div>
+    </div>
+
+    <div class="flip-card">
+      <div class="flip-inner">
+        <div class="diagnosis-card fracture-bg">
+          <div>
+            <h2>Fracture Report</h2>
+            <div class="learn-link">→ Learn More</div>
+          </div>
+        </div>
+                   <div class="card-back">
+                                                  <div class="logo"><img src="./images/file.png"></div>
+
+<div class="name">AI Report</div>
+<div class="role">Accurate. Insightful. Instant.</div>
+<div class="description">
+  Our AI generates comprehensive diagnostic reports from your X-ray scans, highlighting potential anomalies, fracture zones, and severity levels — all backed by explainable insights for doctors and patients.
+</div>
+            </div>
+      </div>
+    </div>
+
+    <!-- Card 3: Pneumonia Check -->
+    <div class="flip-card" style="margin-left: 3%;">
+      <div class="flip-inner">
+        <div class="diagnosis-card pneumonia-bg">
+          <div>
+            <h2>Pneumonia Check</h2>
+            <div class="learn-link">→ Learn More</div>
+          </div>
+        </div>
+                   <div class="card-back">
+                                                  <div class="logo"><img src="./images/data-model.png"></div>
+
+<div class="name">Accurate Analysis</div>
+<div class="role">Trusted by Experts</div>
+<div class="description">
+  Every scan is analyzed with meticulous precision, cross-checking multiple layers of data to deliver results with minimal error rate, helping clinicians make confident and timely decisions.
+</div>
+            </div>
+      </div>
+    </div>
+
+    <div class="flip-card">
+      <div class="flip-inner">
+        <div class="diagnosis-card heatmap-bg">
+          <div>
+            <h2>Heatmap Overlay</h2>
+            <div class="learn-link">→ Learn More</div>
+          </div>
+        </div>
+                   <div class="card-back">
+                                                  <div class="logo"><img src="./images/secure.png"></div>
+
+<div class="name">Secure & Safe</div>
+<div class="role">Your Trust, Our Priority</div>
+<div class="description">
+  All data is encrypted end-to-end, stored in compliance with medical privacy laws, and never shared without authorization — ensuring every patient’s information remains fully protected.
+</div>
+            </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+ <div class="heading" id="blog-heading">
+    <h1>blog</h1>
+  </div>
+<section class="blog-section">
+
+  <div class="section">
+    <div class="left"></div>
+    <div class="right">
+      <h1>how ai<br>is Revolutionizing Radiology</h1>
+      <p>AI is redefining radiology with lightning-fast image analysis, dramatically improving diagnostic accuracy. By leveraging deep learning and computer vision, radiologists can now detect diseases earlier and more reliably than ever before.
+      <br><br>Advanced algorithms can identify micro-fractures, tumors, infections, and abnormalities that may go unnoticed by the human eye. AI also assists in image segmentation, classification, and prioritization of urgent cases—streamlining workflows and reducing reporting times.
+      <br><br>This revolution brings enhanced care even to under-resourced clinics and helps tackle radiologist shortages by automating routine evaluations and boosting productivity.</p>
+    </div>
+  </div>
+</section>
+<!-- <section class="blog-section">
+  <h1>blogs</h1>
+  <p class="lead">Explore how AI is transforming medical imaging with speed, precision, and deeper insights.</p>
+
+  <div class="arrow-btn arrow-left" onclick="changeBlog(-1)">&#10094;</div>
+  <div class="arrow-btn arrow-right" onclick="changeBlog(1)">&#10095;</div>
+
+  <div class="blog-stack" id="blogStack">
+
+    <div class="blog-card visible" id="blog0">
+      <img src="blog1.png" alt="AI Radiology">
+      <div class="blog-content">
+        <h3>How AI is Revolutionizing Radiology</h3>
+        <p>AI is redefining radiology with lightning-fast image analysis, dramatically improving diagnostic accuracy. By leveraging deep learning and computer vision, radiologists can now detect diseases earlier and more reliably than ever before.</p>
+        <p>Advanced algorithms can identify micro-fractures, tumors, infections, and abnormalities that may go unnoticed by the human eye. AI also assists in image segmentation, classification, and prioritization of urgent cases—streamlining workflows and reducing reporting times.</p>
+        <p>This revolution brings enhanced care even to under-resourced clinics and helps tackle radiologist shortages by automating routine evaluations and boosting productivity.</p>
+      </div>
+    </div>
+    <div class="blog-card" id="blog1">
+      <img src="blog2.png" alt="Rare Disease AI">
+      <div class="blog-content">
+        <h3>How AI Handles Rare Medical Conditions</h3>
+        <p>AI is breaking new ground in identifying rare diseases—conditions that are often misdiagnosed due to their low prevalence and complex presentations. By training on massive datasets including diverse demographics and medical histories, AI systems learn to detect subtle signals across thousands of rare syndromes.</p>
+        <p>Tools powered by AI are helping clinicians recognize patterns in skeletal dysplasias, inherited metabolic disorders, and rare lung anomalies. These models can even suggest potential genetic links and guide further testing based on imaging cues.</p>
+        <p>For patients with rare conditions, this means faster diagnoses, earlier intervention, and access to tailored treatment paths—potentially saving lives and reducing diagnostic odysseys.</p>
+      </div>
+    </div>
+    <div class="blog-card" id="blog2">
+      <img src="blog3.png" alt="Edge AI X-Ray Device">
+      <div class="blog-content">
+        <h3>Real-Time X-ray Analysis with Edge AI Devices</h3>
+        <p>Edge AI devices are bringing powerful diagnostic tools out of the hospital and into the field. These compact, portable systems are capable of performing real-time X-ray analysis directly on-site—without needing cloud access or internet connectivity.</p>
+        <p>Ideal for use in rural clinics, ambulances, and military settings, edge devices deliver near-instant results using onboard processors optimized for deep learning. This allows clinicians to triage patients, identify fractures or lung issues, and make decisions on the spot.</p>
+        <p>By reducing the delay between imaging and diagnosis, edge AI enables critical care in emergencies and boosts response capabilities in disaster zones, mobile units, and underserved regions.</p>
+      </div>
+    </div>
+  </div>
+</section> -->
+
+
+<section class="sec" id="targetSection">
+  <div class="image-container">
+    <img src="./images/adam_hand (1).png" class="hand" id="leftHand">
+    <img src="./images/god_hand (1).png" class="hand" id="rightHand">
+  </div>
+  <div class="center-folder" id="about">
+    <a href="/about" class="folder-link" id="folderLink">
+      <div class="folder"></div>
+      <div class="folder-name">Me</div>
+    </a>
+  </div>
+</section>
+<script src="./javascripts/handscroll.js" defer></script>
+<script type="module" src="./javascripts/particles.js" defer></script>
+<script src="./javascripts/bones.js" defer></script>
+<script type="module" src="./javascripts/mainmodelskli.js" defer></script>
+<script type="module" src="./javascripts/upload_file.js" defer></script>
+<script defer>
+  const months = [
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+];
+
+const today = new Date();
+
+const date = today.getDate();         
+const month = months[today.getMonth()]; 
+const year = today.getFullYear();     
+document.getElementById("date").textContent = date;
+document.getElementById("month").textContent = month;
+document.getElementById("year").textContent = year;
+
+</script>
+</body>
+</html>

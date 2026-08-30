@@ -1,0 +1,8 @@
+uploads
+node_modules
+heatmaps
+models
+__pycache__
+images
+videos
+static

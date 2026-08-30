@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Signup/Login</title>
+<link rel="stylesheet" href="./stylesheets/loginstyle.css">
+</head>
+<body>
+ <div class="left">
+    <img src="https://img.icons8.com/ios-filled/50/00ffe7/fire-element.png" width="30" alt="logo" style="margin-bottom: 20px;" />
+    <h2 id="form-title">Create an account</h2>
+    <p id="form-subtitle">Let’s get started with your 30-day free trial.</p>
+
+   <div class="form-group active" id="register-form">
+  <form action="/register" method="post">
+    <input type="text" placeholder="Name" name="name" required/>
+    <input type="email" placeholder="Email" name="email" required/>
+    <input type="number" placeholder="Age" min="0" max="120" name="age" required/>
+<select name="gender" required style="
+  width: 100%;
+  padding: 12px 15px;
+  background-color: #121212;
+      border: 1px solid #333;
+      border-radius: 8px;
+  color: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  font-size: 1rem;
+  margin-bottom: 15px;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url('data:image/svg+xml;utf8,<svg fill=\'%2300ffe7\' height=\'20\' viewBox=\'0 0 24 24\' width=\'20\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M7 10l5 5 5-5z\'/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 20px;
+">
+  <option value="" disabled selected>Select Gender</option>
+  <option value="male">Male</option>
+  <option value="female">Female</option>
+  <option value="other">Other</option>
+</select>
+    <input type="password" placeholder="Password" name="password" required/>
+    <input type="submit" value="Create Account" >
+  </form>
+</div>
+
+    <!-- Login Form -->
+    <div class="form-group" id="login-form">
+      <form action="/login" method="post">
+      <input type="email" placeholder="Email" name="loginemail" required/>
+      <input type="password" placeholder="Password" name="loginpassword" required/>
+      <input type="submit" value="Login">
+      </form>
+    </div>
+
+    <small>
+      <span id="toggle-text">Already have an account?</span>
+      <a onclick="toggleForm()" id="toggle-link">Login</a>
+    </small>
+  </div>
+
+  <div class="right">
+    <video autoplay muted loop>
+      <source src="./videos/skeli.mp4" type="video/mp4" />
+      Your browser does not support video.
+    </video>
+
+    <div class="overlay">
+      <p>“Untitled Labs were a breeze to work alongside, we can’t recommend them enough. We launched 6 months earlier than expected and are growing 30% MoM.”</p>
+      <h4>Amélie Laurent<br><small>Founder, Sisyphus</small></h4>
+    </div>
+  </div>
+<script src="./javascripts/loginform.js" defer></script>
+</body>
+</html>

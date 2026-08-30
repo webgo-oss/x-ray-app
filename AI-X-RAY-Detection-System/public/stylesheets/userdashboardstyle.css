@@ -1,0 +1,448 @@
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #121212;
+      color: #f5f5f5;
+      display: flex;
+    }
+
+    .dashboard {
+      display: flex;
+      height: 100vh;
+      width: 90%;
+    }
+
+    .sidebar {
+      width: 8%;
+      background: #0a0a0a;
+      color: #fff;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .sidebar .logo{
+      width: 100px;
+      height: 160px;
+      border-radius: 50px;
+    }
+    .sidebar .logo img{
+      width: 100%;
+      border-radius: inherit;
+    }
+
+    .sidebar .menu a,
+    .sidebar .settings a,
+    .sidebar .signout {
+      display: block;
+      margin: 15px 0;
+      color: #bbb;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .sidebar .menu,
+    .sidebar .menu a:hover {
+      color: #fff;
+      font-weight: bold;
+    }
+
+    .main-content {
+      flex: 1;
+      padding: 20px;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      grid-gap: 20px;
+    }
+
+    .summary {
+      display: flex;
+      gap: 20px;
+    }
+    @font-face {
+      font-family: numbers;
+      src: url('../fonts/Quicksand-Variable.ttf');
+      font-weight: 100;
+    }
+    .income, .calendar {
+      background: #1e1e1e;
+      padding: 20px;
+      border-radius: 10px;
+      width: 13%;
+    }
+
+    .income h1 {
+     font-size: 60px;
+      color: 	#7FBAC1;
+      line-height: 10px;
+      font-family: numbers;
+    }
+    .income p{
+      font-size: 10px ;
+    }
+    .income img{
+      width: 100px;
+      margin-top: 10px;
+    filter: invert(85%) sepia(30%) saturate(250%) hue-rotate(160deg) brightness(1.1);
+
+    }
+
+    .calendar{
+      width: 20%;
+    }
+.time-card {
+      padding: 30px 25px;
+      width: 100%;
+      color: white;
+      text-align: left;
+      font-family: numbers;
+    }
+
+    .day {
+      font-size: 50px;
+      font-weight: 100;
+      text-transform: uppercase;
+    }
+
+    .date {
+      font-size: 40px;
+      font-weight: 100;
+    }
+
+    .time {
+      font-size: 60px;
+      font-weight: bold;
+      color: 	#B0C4C8;
+      margin-top: 10px;
+    }
+
+    .ampm {
+      font-size: 30px;
+      font-weight: 100;
+      text-transform: uppercase;
+    }
+
+  .more{
+   background-color:	#7DA6B2;
+   width: 37%;
+    padding: 20px;
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      justify-content: end;
+  }
+.more .bi{
+  font-size: 60px;
+}
+.more h4{
+  text-transform: capitalize;
+  font-size: 30px;
+  line-height: 9px;
+}
+.more p{
+  font-size: 14px;
+  text-transform: capitalize;
+    font-family: "Major Mono Display", monospace;
+  font-weight: 900;
+  font-style: normal; 
+}
+.more button{
+    padding: 6px 14px;
+      border: 1px solid #fff;
+      background: transparent;
+      color: #fff;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      width: 30%;
+      text-transform: uppercase;
+}
+    .reservations {
+      background: #1e1e1e;
+      padding: 20px;
+      border-radius: 10px;
+      overflow-y: scroll;
+    }
+
+    .reservations table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      color: #fff;
+    }
+
+    .reservations th, .reservations td {
+      text-align: left;
+      padding: 8px;
+      border-bottom: 1px solid #333;
+    }
+.xray-img {
+  width: 50px;
+  height: 50px;
+  border-radius: 6px;
+  object-fit: cover;
+  transition: transform 0.2s ease;
+}
+
+/* View button style */
+.view-btn {
+  padding: 6px 12px;
+  border: none;
+  background-color: #a3bfcf;
+  color: #000;
+  border-radius: 5px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.view-btn:hover {
+  background-color: #48a0a2;
+}
+ 
+
+    .profile-section {
+      background: url('../images/background.png') no-repeat center center/cover;
+      background-color: #000  ;
+      align-items: center;
+      justify-content: center;
+       font-family: 'Segoe UI', sans-serif;
+       width: 100%;
+       display: none;
+       position:relative;
+       overflow: hidden;
+
+    }
+    .bg-video {
+  position: absolute;
+  inset: 0;  /* top:0; right:0; bottom:0; left:0 */
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  z-index: -2;  /* behind content */
+  pointer-events: none;
+}
+.profile-section::after {
+  /* Overlay for readability */
+  content: "";
+  position: absolute;
+  inset: 0;
+
+  z-index: -1;
+}
+
+    .glass-card {
+      width: 500px;
+      height: 300px;
+      backdrop-filter: blur(30px);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 20px;
+      position: relative;
+      color: white;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+      overflow: hidden;
+    }
+    .updateinfo{
+      width: 500px;
+      height: 500px;
+      backdrop-filter: blur(30px);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 20px;
+      position: relative;
+      color: white;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .cross{
+      width: 100%;
+    }
+    .cross span{
+       cursor: pointer;
+      padding: 5px;
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      border-radius: 5px;
+      float: right;
+      margin-right: 5%;
+    }
+    .cross span:hover{
+      background-color: rgba(255, 255, 255, 0.05);
+    }
+    /* Small logo in top left */
+    .logo-image {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      width: 80px;
+      height: 80px;
+      object-fit: contain;
+      border-radius: 10px;
+    }
+
+    /* Bottom Right Content */
+    .content {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      text-align: right;
+      max-width: 250px;
+    }
+
+    .content h4 {
+      font-size: 11px;
+      letter-spacing: 1px;
+      color: #ccc;
+     margin-bottom: -10px;
+    }
+
+    .content h1 {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .content p {
+      font-size: 12px;
+      color: #ccc;
+      margin-bottom: 15px;
+    }
+
+    .content button {
+      padding: 6px 14px;
+      border: 1px solid #fff;
+      background: transparent;
+      color: #fff;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: 0.3s;
+    }
+
+    .content button:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+    .updateinfo{
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+.profile-form {
+  padding: 25px;
+  border-radius: 10px;
+  max-width: 600px;
+  width: 80%;
+}
+
+.form-top {
+  display: flex;
+  align-items: end;
+  margin-bottom: 20px;
+  gap: 20px;
+}
+
+.image-preview img {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.file-upload input[type="file"] {
+  padding: 10px;
+  color: #f5f5f5;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 6px;
+  width: 100%;
+}
+
+.form-group {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+  gap: 15px;
+}
+
+.form-group label {
+  flex: 1;
+  font-size: 20px;
+  text-transform: uppercase;
+}
+.form-group input::placeholder{
+  color: #f5f5f5; }
+.form-group input,
+.form-group select {
+  flex: 2;
+  padding: 10px;
+  color: #f5f5f5;
+  background:transparent;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 6px; 
+  font-size: 14px;
+}
+input[type="file"]::file-selector-button{
+   padding: 10px;
+  color: #f5f5f5;
+      background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 6px;
+  font-weight: bold;
+
+}
+.confirm-btn {
+  width: 100%;
+  padding: 12px;
+  margin-top: 20px;
+  color: #f5f5f5;
+  background:transparent;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 16px;
+  cursor: pointer;
+}
+ .confirm-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+@media screen and (max-width:1024px) {
+  .sidebar{
+    width: 10%;
+  }
+   .income, .calendar {
+      width: 12%;
+    }
+    .income h1 {
+     font-size: 45px;
+    }
+    .income p{
+      font-size: 12px ;
+    }
+
+    .day {
+      font-size: 40px;
+      margin-left:-10%
+    }
+
+    .date {
+      font-size: 30px;
+        margin-left:-10%
+    }
+
+    .time {
+      font-size: 45px;
+        margin-left:-20%
+    }
+
+    .ampm {
+      font-size: 30px;
+      font-weight: 100;
+      text-transform: uppercase;
+    }
+}
+/* @media screen and (max-width:426px) {
+  
+} */

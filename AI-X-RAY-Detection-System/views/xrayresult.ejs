@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>X-RAY RESULT</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="./stylesheets/result.css">
+</head>
+<body>
+  <div class="container">
+    <div class="left">
+      <h2>X-Ray Scan Console</h2>
+      <p>Experience advanced AI-powered X-ray analysis with real-time results and comprehensive reports for accurate diagnostics.</p>
+      <% if (data.pdf) { %>
+      <a href="<%= data.pdf %>" download>
+        <button class="btn">📄 Download PDF Report</button>
+      </a>
+    <% } %>
+    </div>
+
+    <div class="middle">
+ <% if (data.heatmap) { %>
+      <img src="<%= data.heatmap %>" width="400" />
+    <% } %>
+    </div>
+
+    <div class="right">
+      <div class="user-card">
+        <img src="/uploads/<%= user.profile_image %>" alt="User Photo">
+        <div class="user-info">
+          <strong><%= user.name %></strong>
+          <span>Age: <%= user.age %></span>
+          <span>Gender: <%= user.gender %></span>
+        </div>
+      </div>
+
+     <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+  <div class="detected-heading">Detected</div>
+  <div class="diagnosis-toggle">
+<% 
+  const pred = data.prediction ? data.prediction.toLowerCase().trim() : ''; 
+  const isNoFracture = pred.includes('no fracture') || pred.includes('not fracture') || pred.includes('not fractured');
+  const isFracture = !isNoFracture && pred.includes('fracture');
+%>
+
+<div class="diag-btn <%= isFracture ? 'active' : '' %>" id="fracture">
+  <img src="./images/Bone.png" alt="Broken Bone">
+  Fracture
+</div>
+
+<div class="diag-btn <%= isNoFracture ? 'active' : '' %>" id="no-fracture">
+  <img src="./images/Broken-Bone.png" alt="Normal Bone">
+  No Fracture
+</div>
+
+
+  </div>
+</div>
+
+
+      <div class="chart-container">
+        <h3>Scan Confidence</h3>
+        <canvas id="confidenceChart"></canvas>
+      </div>
+
+      <div class="notes-box">
+        <h4>Analysis Notes</h4>
+        - Prediction: <b><%= data.prediction %></b><br>
+        - Confidence: <b id="confidence-value"><%= data.confidence || 'N/A' %>%</b><br>
+        - Recommendation: Further imaging if pain persists.
+      </div>
+    </div>
+  </div>
+
+<script src="./javascripts/result.js" defer></script>
+</body>
+</html>

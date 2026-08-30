@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fracture Analysis Result</title>
+</head>
+<body>
+    <h1>Analysis Result</h1>
+
+    {% if xray_check %}
+        <h2>{{ xray_check }}</h2>
+    {% endif %}
+
+    {% if prediction and heatmap %}
+        <h2>Prediction: {{ prediction }}</h2>
+        <h3>Heatmap:</h3>
+        <img src="{{ heatmap }}" width="400"><br><br>
+
+        <a href="/download_pdf/{{ filename }}/{{ prediction.split(' ')[0] }}/{{ prediction.split('(')[1].replace('%', '').replace(')', '') }}">
+            <button>📄 Download PDF Report</button>
+        </a>
+    {% elif prediction %}
+        <h2>{{ prediction }}</h2>
+    {% endif %}
+
+    <br><br>
+    <a href="/">🔄 Analyze Another X-ray</a>
+</body>
+</html>

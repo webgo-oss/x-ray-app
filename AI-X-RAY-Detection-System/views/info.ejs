@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Supported Joints — AI X-Ray Detection</title>
+<link rel="stylesheet" href="./stylesheets/info.css">
+</head>
+<body>
+  <div class="wrap">
+
+    <header class="top" id="joints">
+      <div class="brand">
+        <div class="logo" aria-hidden="true">
+            <img src="./images/joints.png" alt="">
+        </div>
+        <div class="brand-text">
+          <h1>Supported Joints</h1>
+          <p>— quick overview</p>
+        </div>
+      </div>
+
+      <nav class="toplinks" aria-label="top links">
+        <a href="#hand">Hand</a>
+        <a href="#elbow">Elbow</a>
+        <a href="#knee">Knee</a>
+      </nav>
+    </header>
+
+    <section class="hero" aria-labelledby="supportedTitle">
+      <div class="hero-left">
+        <h2 id="supportedTitle">Supported Joints</h2>
+        <p>We currently support fracture detection on X-rays for <strong>hands</strong>, <strong>elbows</strong>, and <strong>knees</strong>. Click any icon to jump to a detailed section with heatmap examples and quick stats.</p>
+      </div>
+
+      <div class="icons-row" role="list" aria-label="Supported joints list">
+        <a class="icon-card" href="#hand" role="listitem" aria-label="Hand details">
+        <img src="./images/hand-joint.png" alt="">
+          <div class="icon-title">Hand</div>
+          <div class="icon-desc">Fractures in fingers, palm, wrist</div>
+        </a>
+
+        <a class="icon-card" href="#elbow" role="listitem" aria-label="Elbow details">
+          <img src="./images/elbo-joint.png" alt="">
+          <div class="icon-title">Elbow</div>
+          <div class="icon-desc">Joint alignment & fractures</div>
+        </a>
+
+        <a class="icon-card" href="#knee" role="listitem" aria-label="Knee details">
+         <img src="./images/knee-joint.png" alt="">
+          <div class="icon-title">Knee</div>
+          <div class="icon-desc">Patella & tibial fractures</div>
+        </a>
+      </div>
+    </section>
+
+    <section id="hand" class="section" aria-labelledby="handTitle">
+      <div class="content">
+        <h3 id="handTitle">Hand & Wrist — What we detect</h3>
+        <p>From fingertip to wrist, our AI analyzes bone contours, cortical lines, and subtle density changes to detect metacarpal, phalangeal, and carpal fractures — including hairline and avulsion injuries.</p>
+
+        <div class="stats-row" role="list">
+          <div class="stat"><strong>96%</strong><small>Avg. detection accuracy</small></div>
+          <div class="stat"><strong>~2s</strong><small>Average analysis time</small></div>
+          <div class="stat"><strong>High</strong><small>Sensitivity for hairline fractures</small></div>
+        </div>
+
+        <a class="cta" href="#handHeatmap">View heatmap example</a>
+      </div>
+
+      <aside class="side">
+        <h4 style="margin:0 0 8px;color:var(--accent)">Example Heatmap</h4>
+        <div id="handHeatmap" class="heatmap">
+          <img src="./images/hand-info.png" alt="Hand heatmap example (placeholder)">
+        </div>
+      </aside>
+    </section>
+
+    <section id="elbow" class="section" aria-labelledby="elbowTitle">
+      <div class="content">
+        <h3 id="elbowTitle">Elbow — What we detect</h3>
+        <p>We identify radial head, olecranon, and supracondylar fractures, evaluate articular displacement, and flag suspicious angulation or joint effusion patterns visible on X-ray.</p>
+
+        <div class="stats-row">
+          <div class="stat"><strong>94%</strong><small>Avg. detection accuracy</small></div>
+          <div class="stat"><strong>~2.2s</strong><small>Average analysis time</small></div>
+          <div class="stat"><strong>Moderate</strong><small>Works well with standard AP/Lateral views</small></div>
+        </div>
+
+        <a class="cta" href="#elbowHeatmap">View heatmap example</a>
+      </div>
+
+      <aside class="side">
+        <h4 style="margin:0 0 8px;color:var(--accent)">Example Heatmap</h4>
+        <div id="elbowHeatmap" class="heatmap">
+          <img src="./images/elbo-info.png" alt="Elbow heatmap example (placeholder)">
+        </div>
+      </aside>
+    </section>
+
+    <section id="knee" class="section" aria-labelledby="kneeTitle">
+      <div class="content">
+        <h3 id="kneeTitle">Knee — What we detect</h3>
+        <p>Detects patellar fractures, tibial plateau breaks, and femoral condyle involvement. The model highlights irregular joint spaces and stress fracture indicators.</p>
+
+        <div class="stats-row">
+          <div class="stat"><strong>92%</strong><small>Avg. detection accuracy</small></div>
+          <div class="stat"><strong>~2.5s</strong><small>Average analysis time</small></div>
+          <div class="stat"><strong>Robust</strong><small>Good performance on AP/Lateral views</small></div>
+        </div>
+
+        <a class="cta" href="#kneeHeatmap">View heatmap example</a>
+      </div>
+
+      <aside class="side">
+        <h4 style="margin:0 0 8px;color:var(--accent)">Example Heatmap</h4>
+        <div id="kneeHeatmap" class="heatmap">
+          <img src="./images/knee-info.png" alt="Knee heatmap example (placeholder)">
+        </div>
+      </aside>
+    </section>
+
+<header class="top margin"  id="AI-Powered">
+  <div class="brand">
+    <div class="logo" aria-hidden="true">
+     <img src="./images/artificial-intelligence.png" alt="">
+    </div>
+    <div class="brand-text">
+      <h1>AI-Powered Detection</h1>
+      <p>— Analyze X-rays instantly</p>
+    </div>
+  </div>
+</header>
+
+<section class="hero" aria-labelledby="aiDetectionTitle">
+  <div class="hero-left">
+    <h2 id="aiDetectionTitle">Real-Time Fracture Analysis</h2>
+    <p>Analyze your uploaded X-ray in real-time to identify possible fractures instantly. Our AI engine highlights suspicious regions with advanced heatmaps, helping clinicians and patients make informed decisions faster.</p>
+    <a class="cta" href="#upload">Upload Your X-ray</a>
+  </div>
+
+  <div class="icons-row">
+    <div class="icon-card" role="listitem" aria-label="Fast Results">
+      <svg class="icon-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><g fill="#e9fbf6">
+        <path d="M32 6a26 26 0 1 0 26 26A26 26 0 0 0 32 6Zm0 46a20 20 0 1 1 20-20 20 20 0 0 1-20 20Z"/>
+        <path d="M32 16a2 2 0 0 0-2 2v14l10 6a2 2 0 1 0 2-3l-8-5V18a2 2 0 0 0-2-2Z"/>
+      </g></svg>
+      <div class="icon-title">Under 3 Seconds</div>
+      <div class="icon-desc">Get fracture results almost instantly</div>
+    </div>
+
+    <div class="icon-card" role="listitem" aria-label="High Accuracy">
+      <svg class="icon-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><g fill="#e9fbf6">
+        <path d="M45 21 27 39l-8-8a2 2 0 0 0-3 3l10 10a2 2 0 0 0 3 0l19-19a2 2 0 1 0-3-3Z"/>
+        <path d="M32 2A30 30 0 1 0 62 32 30 30 0 0 0 32 2Zm0 54A24 24 0 1 1 56 32 24 24 0 0 1 32 56Z"/>
+      </g></svg>
+      <div class="icon-title">High Accuracy</div>
+      <div class="icon-desc">Model trained on thousands of X-ray cases</div>
+    </div>
+  </div>
+</section>
+<header class="top margin"  id="heatmaps">
+  <div class="brand">
+    <div class="logo" aria-hidden="true">
+       <img src="./images/bubbled.png" alt="">
+    </div>
+    <div class="brand-text">
+      <h1>Visual Heatmap Report</h1>
+      <p>— Understand AI output colors</p>
+    </div>
+  </div>
+</header>
+
+<section class="section" aria-labelledby="heatmapTitle">
+  <div class="content">
+    <h3 id="heatmapTitle">How to Read the Heatmap</h3>
+    <p>The AI detection system overlays a color-coded heatmap on the X-ray to highlight potential problem areas. Each color represents a different probability level for fracture detection:</p>
+    <ul>
+      <li><strong style="color:red;">Red</strong> — High probability of fracture</li>
+      <li><strong style="color:green;">Green</strong> — Moderate probability</li>
+      <li><strong style="color:blue;">Blue</strong> — Low probability</li>
+    </ul>
+    <canvas id="heatmapChart" width="300" height="300" aria-label="Heatmap color distribution chart"></canvas>
+
+    <p style="margin-top:15px; font-size:0.9rem; color:rgba(233,251,246,0.7);">
+      <em>Note:</em> The presence of these colors does not always indicate an actual fracture. 
+      They represent the attention or focus areas of the AI model during analysis — 
+      essentially the "path" of the model's evaluation process.
+    </p>
+  </div>
+
+  <aside class="side">
+    <h4 style="margin:0 0 8px;color:var(--accent)">Example Heatmap</h4>
+    <div class="heatmap1">
+      <img src="./images/example-heatmap.png" alt="Example AI-generated X-ray heatmap showing red, green, and blue regions">
+    </div>
+  </aside>
+</section>
+<header class="top margin"  id="secure">
+  <div class="brand">
+    <div class="logo" aria-hidden="true">
+      <img src="./images/insurance.png" alt="">
+    </div>
+    <div class="brand-text">
+      <h1>Secure & Privacy Policy</h1>
+      <p>— Your data safety is our top priority</p>
+    </div>
+  </div>
+</header>
+
+<section class="section" aria-labelledby="privacyTitle">
+  <div class="content">
+    <h3 id="privacyTitle">Our Commitment to Your Privacy</h3>
+    <p>We take the security and confidentiality of your medical data very seriously. All uploaded X-ray images are:</p>
+    <ul>
+      <li>Encrypted during transfer and storage using industry-standard protocols.</li>
+      <li>Processed only for the purpose of AI analysis — never shared without your consent.</li>
+      <li>Automatically deleted from our servers after processing.</li>
+    </ul>
+
+    <h4>Key Security Measures</h4>
+   <ul>
+  <li><strong>SSL Encryption:</strong> Protects your data during upload and download.</li>
+  <li><strong>Secure Storage:</strong> Isolated servers with strict access controls.</li>
+  <li><strong>Hashing Security:</strong> Any sensitive identifiers (such as user IDs or login credentials) are hashed using strong algorithms before storage, ensuring they cannot be retrieved in plain text.</li>
+  <li><strong>User Control:</strong> You decide if your data can be stored for research.</li>
+</ul>
+
+
+    <p style="margin-top:15px; font-size:0.9rem; color:rgba(233,251,246,0.7);">
+      <em>Note:</em> While we implement the highest data protection standards, online data transmission can never be guaranteed 100% secure.
+    </p>
+  </div>
+
+  <aside class="side">
+    <h4 style="margin:0 0 8px;color:var(--accent)">No Worries</h4>
+    <div class="heatmap2">
+      <img src="./images/heatmap.jpeg" alt="Illustration showing secure data encryption process for uploaded X-rays">
+    </div>
+  </aside>
+</section>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const ctx = document.getElementById('heatmapChart').getContext('2d');
+new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels: ['High Probability (Red)', 'Moderate (Green)', 'Low (Blue)'],
+    datasets: [{
+      label: 'Detection Confidence (%)',
+      data: [45, 35, 20],
+      backgroundColor: ['red', 'green', 'blue'],
+      borderColor: ['#ff0000', '#00ff00', '#0000ff'],
+      borderWidth: 1
+    }]
+  },
+  options: {
+    responsive: true,
+    scales: {
+      y: {
+        beginAtZero: true,
+        title: {
+          display: true,
+          text: 'Confidence (%)',
+          color: '#e9fbf6'
+        },
+        ticks: {
+          color: '#e9fbf6'
+        },
+        grid: {
+          color: 'rgba(233, 251, 246, 0.1)'
+        }
+      },
+      x: {
+        ticks: {
+          color: '#e9fbf6'
+        },
+        grid: {
+          color: 'rgba(233, 251, 246, 0.1)'
+        }
+      }
+    },
+    plugins: {
+      legend: {
+        labels: { color: '#e9fbf6' }
+      }
+    }
+  }
+});
+</script>
+    <footer>
+      © 2025 AI X-Ray Detection • For informational/demo use only. Replace examples with validated clinical images.
+    </footer>
+  </div>
+</body>
+</html>
+
