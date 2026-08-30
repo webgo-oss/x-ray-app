@@ -2,10 +2,11 @@ const express = require('express');
 const User = require('../models/User');
 const { requireAuth } = require('../middleware/auth');
 const { upload } = require('../middleware/upload');
+const { updateProfileValidation, validate } = require('../middleware/validators');
 
 const router = express.Router();
 
-router.post('/updateprofile', requireAuth, upload.single('profilepic'), async (req, res) => {
+router.post('/updateprofile', requireAuth, upload.single('profilepic'), updateProfileValidation, validate, async (req, res) => {
   const userId = req.session.user.id;
   const { updateprofilename, gender, age } = req.body;
   const profileImage = req.file ? req.file.filename : req.session.user.profile_image || 'default.jpg';
@@ -16,7 +17,7 @@ router.post('/updateprofile', requireAuth, upload.single('profilepic'), async (r
       gender,
       age,
       profile_image: profileImage
-    });
+    }, { runValidators: true, context: 'query' });
 
     req.session.user.name = updateprofilename;
     req.session.user.gender = gender;
@@ -27,7 +28,10 @@ router.post('/updateprofile', requireAuth, upload.single('profilepic'), async (r
     res.redirect('/dashboard');
   } catch (err) {
     console.error('Profile update error:', err.message);
-    res.status(500).send('Database update failed');
+    if (err.name === 'ValidationError') {
+      return res.status(400).render('error', { error: Object.values(err.errors)[0].message });
+    }
+    res.status(500).render('error', { error: 'Database update failed' });
   }
 });
 
