@@ -1,16 +1,22 @@
 require('dotenv').config();
-const mysql = require('mysql');
+const mongoose = require('mongoose');
 
-const connection = mysql.createConnection({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME
+const uri = process.env.MONGO_URI;
+
+if (!uri) {
+  console.error('MONGO_URI is not set in .env');
+  process.exit(1);
+}
+
+mongoose.connect(uri)
+  .then(() => console.log('Connected to MongoDB'))
+  .catch((err) => {
+    console.error('MongoDB connection error:', err.message);
+    process.exit(1);
+  });
+
+mongoose.connection.on('error', (err) => {
+  console.error('MongoDB runtime error:', err.message);
 });
 
-connection.connect((err) => {
-  if (err) console.log("Database connection error:", err);
-  else console.log("Connected to the database, ID:", connection.threadId);
-});
-
-module.exports = connection;
+module.exports = mongoose;

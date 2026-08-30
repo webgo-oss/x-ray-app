@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "start": "node active.js"
+  },
   "dependencies": {
     "axios": "^1.11.0",
     "bcrypt": "^6.0.0",
@@ -8,8 +11,8 @@
     "express": "^5.1.0",
     "express-session": "^1.18.2",
     "form-data": "^4.0.4",
+    "mongoose": "^8.9.0",
     "multer": "^2.0.2",
-    "mysql": "^2.18.1",
     "request": "^2.88.2"
   }
 }
