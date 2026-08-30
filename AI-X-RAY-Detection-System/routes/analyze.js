@@ -6,6 +6,7 @@ const FormData = require('form-data');
 const Scan = require('../models/Scan');
 const { requireAuth } = require('../middleware/auth');
 const { xrayUpload } = require('../middleware/upload');
+const { analyzeLimiter } = require('../middleware/rateLimiters');
 
 const router = express.Router();
 
@@ -15,7 +16,7 @@ function getValidUrl(url) {
   return `http://127.0.0.1:5000${url}`;
 }
 
-router.post('/analyze', requireAuth, (req, res, next) => {
+router.post('/analyze', requireAuth, analyzeLimiter, (req, res, next) => {
   xrayUpload.single('xray')(req, res, (err) => {
     if (err) {
       return res.render('error', { error: err.message || 'Upload failed' });

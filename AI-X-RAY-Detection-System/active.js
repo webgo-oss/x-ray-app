@@ -3,10 +3,10 @@ const express = require('express');
 const bodyparser = require('body-parser');
 const session = require('express-session');
 const helmet = require('helmet');
+const morgan = require('morgan');
 const path = require('path');
 const multer = require('multer');
-
-require('./config/db'); // connects to MongoDB on startup
+const mongoose = require('./config/db'); // connects to MongoDB on startup
 
 const authRoutes = require('./routes/auth');
 const pageRoutes = require('./routes/pages');
@@ -19,9 +19,10 @@ app.set('view engine', 'ejs');
 app.use(helmet({
   contentSecurityPolicy: false // views load fonts/scripts from external CDNs; keep off unless you write a full CSP
 }));
+app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 app.use(express.static('./public'));
-app.use(bodyparser.urlencoded({ extended: true }));
-app.use(express.json());
+app.use(bodyparser.urlencoded({ extended: true, limit: '100kb' })); // text fields only — file uploads go through multer, not this
+app.use(express.json({ limit: '100kb' }));
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
 app.use(session({
@@ -55,4 +56,21 @@ app.use((err, req, res, next) => {
   res.status(500).render('error', { error: 'Something went wrong. Please try again.' });
 });
 
-app.listen(3000, () => console.log('Node.js server running on http://localhost:3000'));
+const server = app.listen(3000, () => console.log('Node.js server running on http://localhost:3000'));
+
+// Graceful shutdown — finish in-flight requests and close the DB connection cleanly
+// instead of dropping connections when the process is killed (deploys, container restarts).
+function shutdown(signal) {
+  console.log(`${signal} received: shutting down gracefully`);
+  server.close(() => {
+    mongoose.connection.close(false).then(() => {
+      console.log('MongoDB connection closed. Exiting.');
+      process.exit(0);
+    });
+  });
+  // Force-exit if shutdown hangs for more than 10s
+  setTimeout(() => process.exit(1), 10000).unref();
+}
+
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));

@@ -10,4 +10,16 @@ const authLimiter = rateLimit({
   }
 });
 
-module.exports = { authLimiter };
+// /analyze calls out to the Flask/Keras backend for inference — much heavier per-request
+// than a login attempt, so it gets its own, looser limit to prevent backend overload.
+const analyzeLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000, // 10 minutes
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res) => {
+    res.status(429).render('error', { error: 'Too many scans submitted. Please slow down and try again shortly.' });
+  }
+});
+
+module.exports = { authLimiter, analyzeLimiter };

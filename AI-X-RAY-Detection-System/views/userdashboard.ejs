@@ -99,6 +99,18 @@ Each upload helps improve detection of fractures and anomalies in hands, knees, 
   </tr>
 <% }) %>
 </table>
+
+<% if (totalPages > 1) { %>
+  <div class="pagination" style="margin-top:16px;display:flex;gap:10px;align-items:center;">
+    <% if (currentPage > 1) { %>
+      <a href="/dashboard?page=<%= currentPage - 1 %>"><button>&laquo; Prev</button></a>
+    <% } %>
+    <span>Page <%= currentPage %> of <%= totalPages %></span>
+    <% if (currentPage < totalPages) { %>
+      <a href="/dashboard?page=<%= currentPage + 1 %>"><button>Next &raquo;</button></a>
+    <% } %>
+  </div>
+<% } %>
       </section>
     </main>
     <section class="profile-section" id="profile-section">
