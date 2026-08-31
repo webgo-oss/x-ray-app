@@ -599,6 +599,33 @@ margin-left: 5%;
   transform: translateX(0);
 }
 
+#uploadMsg.upload-msg{
+  display: inline-block;
+  margin-left: 5%;
+  margin-top: 6px;
+  font-family: Verdana, sans-serif;
+  font-size: 12px;
+  font-weight: normal;
+  text-transform: none;
+  letter-spacing: normal;
+  line-height: 1.2;
+  color: #ff6b6b;
+  background: rgba(255, 107, 107, 0.12);
+  border: 1px solid rgba(255, 107, 107, 0.4);
+  border-radius: 4px;
+  padding: 2px 8px;
+  opacity: 0;
+  transform: translateY(-2px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+#uploadMsg.upload-msg.show-error{
+  opacity: 1;
+  transform: translateY(0);
+}
+.uploads input[type="file"].file-invalid + .custom-label{
+  border-color: #ff6b6b;
+  box-shadow: 0 0 0 1px #ff6b6b;
+}
 .images_upload{
   width: 20%;
   display: flex;

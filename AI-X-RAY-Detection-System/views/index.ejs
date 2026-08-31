@@ -184,12 +184,13 @@
            <div class="uploads">
            <span>upload x-rays</span>
            <p> Upload a clear X-ray image (JPG or PNG) for quick analysis. Your data stays private</p>
-           <form action="/analyze" method="post" enctype="multipart/form-data">
+           <form action="/analyze" method="post" enctype="multipart/form-data" id="uploadForm" novalidate>
            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-           <input type="file" id="file" name="xray" accept="image/*" required>
+           <input type="file" id="file" name="xray" accept=".jpg,.jpeg,.png,.bmp,image/jpeg,image/png,image/bmp">
            <label for="file" class="custom-label">Upload X-Ray</label>
              <button type="submit" class="custom-label-ana">Analyze<i class="bi bi-arrow-right"></i></button>
            </form>
+           <span id="uploadMsg" class="upload-msg" role="alert"></span>
            </div>
            <div class="images_upload">
  <img src="./images/x-ray.png" >

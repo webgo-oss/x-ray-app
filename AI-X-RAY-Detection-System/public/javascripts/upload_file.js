@@ -4,11 +4,71 @@
 
     let space, perspectiveCam, visualizer, interactor, photoCard;
 
+    // --- Upload validation ---
+    const MAX_XRAY_SIZE = 10 * 1024 * 1024; // 10MB, matches server-side limit
+    const ALLOWED_XRAY_TYPES = ['image/jpeg', 'image/png', 'image/bmp'];
+    const ALLOWED_XRAY_EXT = /\.(jpe?g|png|bmp)$/i;
+
+    const uploadForm = document.getElementById('uploadForm');
+    const fileInput = document.getElementById('file');
+    const uploadMsg = document.getElementById('uploadMsg');
+
+    function showUploadError(message) {
+      if (!uploadMsg) return;
+      uploadMsg.textContent = message;
+      uploadMsg.classList.add('show-error');
+      fileInput.classList.add('file-invalid');
+    }
+
+    function clearUploadError() {
+      if (!uploadMsg) return;
+      uploadMsg.textContent = '';
+      uploadMsg.classList.remove('show-error');
+      fileInput.classList.remove('file-invalid');
+    }
+
+    // Returns an error message string, or null if the file is valid
+    function validateXrayFile(file) {
+      if (!file) return 'Please upload an X-ray image first.';
+      if (!ALLOWED_XRAY_EXT.test(file.name) || !ALLOWED_XRAY_TYPES.includes(file.type)) {
+        return 'Only JPG, PNG, or BMP images are allowed.';
+      }
+      if (file.size > MAX_XRAY_SIZE) {
+        return 'That file is too large. Max size is 10MB.';
+      }
+      return null;
+    }
+
+    function resetPreview() {
+      const preview = document.getElementById('imagePreview');
+      preview.src = '';
+      preview.style.display = 'none';
+
+      const fileNameBox = document.getElementById('fileName');
+      const fileTimeBox = document.getElementById('fileTime');
+      if (fileNameBox) fileNameBox.innerHTML = '';
+      if (fileTimeBox) fileTimeBox.innerHTML = '';
+
+      if (photoCard) {
+        space.remove(photoCard);
+        photoCard = null;
+      }
+    }
+
     initializeThreeWorld();
 
     document.getElementById('file').addEventListener('change', function (event) {
       const uploadedFile = event.target.files[0];
-      if (!uploadedFile) return;
+      const error = validateXrayFile(uploadedFile);
+
+      if (error) {
+        showUploadError(error);
+        resetPreview();
+        fileInput.value = '';
+        return;
+      }
+
+      clearUploadError();
 
       // Show file name and time
       const fileNameBox = document.getElementById('fileName');
@@ -30,6 +90,18 @@
 
       handleImageInput(event);
     });
+
+    if (uploadForm) {
+      uploadForm.addEventListener('submit', function (event) {
+        const error = validateXrayFile(fileInput.files[0]);
+        if (error) {
+          event.preventDefault();
+          showUploadError(error);
+        } else {
+          clearUploadError();
+        }
+      });
+    }
 
     function initializeThreeWorld() {
       space = new THREE.Scene();
