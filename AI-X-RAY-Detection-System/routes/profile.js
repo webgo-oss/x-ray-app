@@ -3,10 +3,11 @@ const User = require('../models/User');
 const { requireAuth } = require('../middleware/auth');
 const { upload } = require('../middleware/upload');
 const { updateProfileValidation, validate } = require('../middleware/validators');
+const { doubleCsrfProtection } = require('../middleware/csrf');
 
 const router = express.Router();
 
-router.post('/updateprofile', requireAuth, upload.single('profilepic'), updateProfileValidation, validate, async (req, res) => {
+router.post('/updateprofile', requireAuth, upload.single('profilepic'), doubleCsrfProtection, updateProfileValidation, validate, async (req, res) => {
   const userId = req.session.user.id;
   const { updateprofilename, gender, age } = req.body;
   const profileImage = req.file ? req.file.filename : req.session.user.profile_image || 'default.jpg';

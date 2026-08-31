@@ -7,6 +7,7 @@ const Scan = require('../models/Scan');
 const { requireAuth } = require('../middleware/auth');
 const { xrayUpload } = require('../middleware/upload');
 const { analyzeLimiter } = require('../middleware/rateLimiters');
+const { doubleCsrfProtection } = require('../middleware/csrf');
 
 const router = express.Router();
 
@@ -23,7 +24,7 @@ router.post('/analyze', requireAuth, analyzeLimiter, (req, res, next) => {
     }
     next();
   });
-}, async (req, res) => {
+}, doubleCsrfProtection, async (req, res) => {
   try {
     if (!req.file) return res.status(400).send('No file uploaded');
 

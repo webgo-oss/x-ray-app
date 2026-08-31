@@ -185,6 +185,7 @@
            <span>upload x-rays</span>
            <p> Upload a clear X-ray image (JPG or PNG) for quick analysis. Your data stays private</p>
            <form action="/analyze" method="post" enctype="multipart/form-data">
+           <input type="hidden" name="_csrf" value="<%= csrfToken %>">
            <input type="file" id="file" name="xray" accept="image/*" required>
            <label for="file" class="custom-label">Upload X-Ray</label>
              <button type="submit" class="custom-label-ana">Analyze<i class="bi bi-arrow-right"></i></button>

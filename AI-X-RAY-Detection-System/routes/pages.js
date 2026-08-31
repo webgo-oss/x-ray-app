@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const Scan = require('../models/Scan');
 const { requireAuth } = require('../middleware/auth');
+const { generateCsrfToken } = require('../middleware/csrf');
 
 const router = express.Router();
 
@@ -15,7 +16,7 @@ router.get('/health', (req, res) => {
 });
 
 router.get('/main', (req, res) => {
-  res.render('index', { user: req.session.user || null });
+  res.render('index', { user: req.session.user || null, csrfToken: generateCsrfToken(req, res) });
 });
 
 router.get('/infomation', (req, res) => {
@@ -52,7 +53,8 @@ router.get('/dashboard', requireAuth, async (req, res) => {
       history,
       count: totalScans,
       currentPage: page,
-      totalPages
+      totalPages,
+      csrfToken: generateCsrfToken(req, res)
     });
   } catch (err) {
     console.error('Dashboard error:', err.message);

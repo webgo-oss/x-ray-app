@@ -14,6 +14,7 @@
 
    <div class="form-group active" id="register-form">
   <form action="/register" method="post">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
     <input type="text" placeholder="Name" name="name" required/>
     <input type="email" placeholder="Email" name="email" required/>
     <input type="number" placeholder="Age" min="0" max="120" name="age" required/>
@@ -48,6 +49,7 @@
     <!-- Login Form -->
     <div class="form-group" id="login-form">
       <form action="/login" method="post">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
       <input type="email" placeholder="Email" name="loginemail" required/>
       <input type="password" placeholder="Password" name="loginpassword" required/>
       <input type="submit" value="Login">

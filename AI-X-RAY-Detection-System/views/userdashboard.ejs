@@ -134,9 +134,10 @@ Each upload helps improve detection of fractures and anomalies in hands, knees, 
       <span onclick="done()">X</span>
     </div>
 <form action="/updateprofile" method="post" enctype="multipart/form-data" class="profile-form">
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
   <div class="form-top">
     <div class="image-preview">
-      <img src="<%= user.profile_image || 'default.jpg' %>" alt="Profile Image" id="profileImage">
+      <img src="/uploads/<%= user.profile_image || 'default.jpg' %>" alt="Profile Image" id="profileImage">
     </div>
     <div class="file-upload">
       <input type="file" name="profilepic" accept="image/*" id="fileInput">
