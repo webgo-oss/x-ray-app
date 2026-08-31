@@ -57,6 +57,45 @@
 
     initializeThreeWorld();
 
+    const submitBtn = uploadForm ? uploadForm.querySelector('#analyzeBtn') : null;
+    const submitBtnLabel = document.getElementById('analyzeBtnLabel');
+    const loadingOverlay = document.getElementById('uploadLoadingOverlay');
+    const loadingVideo = document.getElementById('uploadLoadingVideo');
+
+    function setChecking(isChecking) {
+      if (submitBtn) {
+        submitBtn.disabled = isChecking;
+        submitBtn.classList.toggle('checking', isChecking);
+      }
+      if (submitBtnLabel) submitBtnLabel.textContent = isChecking ? 'Checking...' : 'Analyze';
+      if (loadingOverlay) {
+        loadingOverlay.classList.toggle('show', isChecking);
+        loadingOverlay.setAttribute('aria-hidden', String(!isChecking));
+      }
+      if (loadingVideo) {
+        if (isChecking) {
+          loadingVideo.currentTime = 0;
+          loadingVideo.play().catch(() => {});
+        } else {
+          loadingVideo.pause();
+        }
+      }
+    }
+
+    // Sends the file to the keras classifier alone (no fracture model, no
+    // gradcam, no PDF) so we can reject non-x-rays right at upload time
+    // instead of waiting for a full /analyze round trip.
+    async function checkIsXray(file) {
+      const csrfInput = uploadForm.querySelector('[name="_csrf"]');
+      const body = new FormData();
+      body.append('xray', file);
+      if (csrfInput) body.append('_csrf', csrfInput.value);
+
+      const res = await fetch('/verify-xray', { method: 'POST', body });
+      if (!res.ok) throw new Error('verify request failed');
+      return res.json(); // { is_xray, score }
+    }
+
     document.getElementById('file').addEventListener('change', function (event) {
       const uploadedFile = event.target.files[0];
       const error = validateXrayFile(uploadedFile);
@@ -69,6 +108,27 @@
       }
 
       clearUploadError();
+
+      setChecking(true);
+      showUploadError('Checking image...');
+      checkIsXray(uploadedFile)
+        .then((result) => {
+          if (!result.is_xray) {
+            showUploadError('That doesn\'t look like an X-ray. Please upload an X-ray image.');
+            resetPreview();
+            fileInput.value = '';
+            return;
+          }
+          clearUploadError();
+        })
+        .catch(() => {
+          // Classifier unreachable — don't block the user, let /analyze
+          // do the same check server-side on submit.
+          clearUploadError();
+        })
+        .finally(() => {
+          setChecking(false);
+        });
 
       // Show file name and time
       const fileNameBox = document.getElementById('fileName');
@@ -93,6 +153,10 @@
 
     if (uploadForm) {
       uploadForm.addEventListener('submit', function (event) {
+        if (submitBtn && submitBtn.disabled) {
+          event.preventDefault();
+          return;
+        }
         const error = validateXrayFile(fileInput.files[0]);
         if (error) {
           event.preventDefault();

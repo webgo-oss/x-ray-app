@@ -80,6 +80,31 @@ def get_report(filename):
 
 
 
+@app.route('/verify-xray', methods=['POST'])
+def verify_xray():
+    """Lightweight check used at upload time: runs only the keras
+    x-ray/not-x-ray classifier, skips the fracture model, gradcam and
+    PDF generation, and doesn't keep the file around."""
+    file = request.files.get('xray')
+    if not file:
+        return jsonify({"error": "No file uploaded"}), 400
+
+    filename = datetime.now().strftime("%Y%m%d%H%M%S_") + file.filename
+    filepath = os.path.join(UPLOAD_FOLDER, filename)
+    file.save(filepath)
+
+    try:
+        xray_score = float(xray_model.predict(preprocess_xray(filepath))[0][0])
+    finally:
+        if os.path.exists(filepath):
+            os.remove(filepath)
+
+    return jsonify({
+        "is_xray": xray_score > X_RAY_THRESHOLD,
+        "score": xray_score
+    })
+
+
 @app.route('/predict', methods=['POST'])
 def predict():
     file = request.files.get('xray')

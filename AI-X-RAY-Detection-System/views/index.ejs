@@ -188,9 +188,17 @@
            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
            <input type="file" id="file" name="xray" accept=".jpg,.jpeg,.png,.bmp,image/jpeg,image/png,image/bmp">
            <label for="file" class="custom-label">Upload X-Ray</label>
-             <button type="submit" class="custom-label-ana">Analyze<i class="bi bi-arrow-right"></i></button>
+             <button type="submit" class="custom-label-ana" id="analyzeBtn">
+               <span class="btn-spinner" id="analyzeSpinner" aria-hidden="true"></span>
+               <span class="btn-label" id="analyzeBtnLabel">Analyze</span>
+               <i class="bi bi-arrow-right"></i>
+             </button>
            </form>
            <span id="uploadMsg" class="upload-msg" role="alert"></span>
+           <div id="uploadLoadingOverlay" class="upload-loading-overlay" aria-hidden="true">
+             <video id="uploadLoadingVideo" src="/video/loading.mp4" autoplay loop muted playsinline></video>
+             <p>Checking your X-ray...</p>
+           </div>
            </div>
            <div class="images_upload">
  <img src="./images/x-ray.png" >

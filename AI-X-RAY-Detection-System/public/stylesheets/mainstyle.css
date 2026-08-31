@@ -527,6 +527,7 @@ margin-left: 5%;
   display: flex;
   flex-direction:column;
   justify-content: center;
+  position: relative;
 }
 .uploads span{
    font-family: "Bodoni Moda", serif;
@@ -590,6 +591,32 @@ margin-left: 5%;
   transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
+/* Upload-time classifier check: spinner replaces the arrow and the
+   button is disabled so people can't submit before we know the file
+   is actually an x-ray. */
+.custom-label-ana .btn-spinner {
+  display: none;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: analyze-spin 0.7s linear infinite;
+}
+.custom-label-ana.checking {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+.custom-label-ana.checking .btn-spinner {
+  display: inline-block;
+}
+.custom-label-ana.checking i {
+  display: none;
+}
+@keyframes analyze-spin {
+  to { transform: rotate(360deg); }
+}
+
 .custom-label-ana:hover {
   padding-right: 20px; /* makes room for arrow */
 }
@@ -625,6 +652,36 @@ margin-left: 5%;
 .uploads input[type="file"].file-invalid + .custom-label{
   border-color: #ff6b6b;
   box-shadow: 0 0 0 1px #ff6b6b;
+}
+
+/* Full loading screen over the upload card while /verify-xray runs.
+   The analyze button stays disabled the whole time (see .checking above). */
+.upload-loading-overlay {
+  display: none;
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: rgba(10, 10, 10, 0.82);
+  border-radius: 12px;
+  backdrop-filter: blur(2px);
+}
+.upload-loading-overlay.show {
+  display: flex;
+}
+.upload-loading-overlay video {
+  width: 140px;
+  max-width: 40%;
+  border-radius: 10px;
+}
+.upload-loading-overlay p {
+  font-family: Verdana, sans-serif;
+  font-size: 13px;
+  color: #fff;
+  margin: 0;
 }
 .images_upload{
   width: 20%;

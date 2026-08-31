@@ -11,6 +11,33 @@ const { doubleCsrfProtection } = require('../middleware/csrf');
 
 const router = express.Router();
 
+// Memory storage for the upload-time check only — the file never needs to
+// touch disk since it's just forwarded to Flask and discarded either way.
+const multer = require('multer');
+const memoryUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 }
+});
+
+router.post('/verify-xray', requireAuth, analyzeLimiter, memoryUpload.single('xray'), doubleCsrfProtection, async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+
+    const formData = new FormData();
+    formData.append('xray', req.file.buffer, req.file.originalname);
+
+    const response = await axios.post('http://127.0.0.1:5000/verify-xray', formData, {
+      headers: formData.getHeaders(),
+      maxBodyLength: Infinity
+    });
+
+    res.json(response.data);
+  } catch (err) {
+    console.error('Verify-xray error:', err.message);
+    res.status(502).json({ error: 'Could not reach the classifier, please try again' });
+  }
+});
+
 function getValidUrl(url) {
   if (!url) return null;
   if (url.startsWith('http')) return url;
