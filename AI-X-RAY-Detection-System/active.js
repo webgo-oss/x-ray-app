@@ -107,7 +107,7 @@ app.use((err, req, res, next) => {
   res.status(500).render('error', { error: 'Something went wrong. Please try again.' });
 });
 
-const server = app.listen(3000, () => console.log('Node.js server running on http://localhost:3000'));
+const server = app.listen(process.env.PORT || 3000, () => console.log(`Node.js server running on http://localhost:${process.env.PORT || 3000}`));
 
 // Graceful shutdown — finish in-flight requests and close the DB connection cleanly
 // instead of dropping connections when the process is killed (deploys, container restarts).

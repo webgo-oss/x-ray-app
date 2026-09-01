@@ -61,6 +61,7 @@
     const submitBtnLabel = document.getElementById('analyzeBtnLabel');
     const loadingOverlay = document.getElementById('uploadLoadingOverlay');
     const loadingVideo = document.getElementById('uploadLoadingVideo');
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
     function setChecking(isChecking) {
       if (submitBtn) {
@@ -73,7 +74,9 @@
         loadingOverlay.setAttribute('aria-hidden', String(!isChecking));
       }
       if (loadingVideo) {
-        if (isChecking) {
+        // Respect the OS-level "reduce motion" setting: leave the video
+        // paused on its poster frame instead of autoplaying the animation.
+        if (isChecking && !prefersReducedMotion.matches) {
           loadingVideo.currentTime = 0;
           loadingVideo.play().catch(() => {});
         } else {

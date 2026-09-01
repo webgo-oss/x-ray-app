@@ -1,0 +1,8 @@
+flask
+tensorflow
+torch
+transformers
+opencv-python
+numpy
+Pillow
+reportlab

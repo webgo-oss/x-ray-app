@@ -11,6 +11,13 @@ const { doubleCsrfProtection } = require('../middleware/csrf');
 
 const router = express.Router();
 
+// Flask can occasionally hang (model warm-up, GPU contention, etc.) — without
+// a timeout, the request (and the disabled Analyze button on the client)
+// would just wait forever instead of failing back to the user.
+const QUICK_CHECK_TIMEOUT_MS = 10_000;   // /verify-xray: single lightweight classification
+const FULL_ANALYZE_TIMEOUT_MS = 30_000;  // /predict: classification + gradcam + pdf generation
+const ARTIFACT_FETCH_TIMEOUT_MS = 15_000; // downloading the generated heatmap/pdf back from Flask
+
 // Memory storage for the upload-time check only — the file never needs to
 // touch disk since it's just forwarded to Flask and discarded either way.
 const multer = require('multer');
@@ -28,12 +35,16 @@ router.post('/verify-xray', requireAuth, analyzeLimiter, memoryUpload.single('xr
 
     const response = await axios.post('http://127.0.0.1:5000/verify-xray', formData, {
       headers: formData.getHeaders(),
-      maxBodyLength: Infinity
+      maxBodyLength: Infinity,
+      timeout: QUICK_CHECK_TIMEOUT_MS
     });
 
     res.json(response.data);
   } catch (err) {
     console.error('Verify-xray error:', err.message);
+    if (err.code === 'ECONNABORTED') {
+      return res.status(504).json({ error: 'Classifier took too long to respond, please try again' });
+    }
     res.status(502).json({ error: 'Could not reach the classifier, please try again' });
   }
 });
@@ -60,7 +71,8 @@ router.post('/analyze', requireAuth, analyzeLimiter, (req, res, next) => {
 
     const response = await axios.post('http://127.0.0.1:5000/predict', formData, {
       headers: formData.getHeaders(),
-      maxBodyLength: Infinity
+      maxBodyLength: Infinity,
+      timeout: FULL_ANALYZE_TIMEOUT_MS
     });
 
     const data = response.data;
@@ -87,7 +99,10 @@ router.post('/analyze', requireAuth, analyzeLimiter, (req, res, next) => {
       const heatmapFilename = path.basename(data.heatmap);
       const nodePath = path.join(__dirname, '..', 'public/uploads', heatmapFilename);
 
-      const heatmapResp = await axios.get(getValidUrl(data.heatmap), { responseType: 'arraybuffer' });
+      const heatmapResp = await axios.get(getValidUrl(data.heatmap), {
+        responseType: 'arraybuffer',
+        timeout: ARTIFACT_FETCH_TIMEOUT_MS
+      });
       fs.writeFileSync(nodePath, heatmapResp.data);
 
       heatmapLocalPath = `/uploads/${heatmapFilename}`;
@@ -99,7 +114,10 @@ router.post('/analyze', requireAuth, analyzeLimiter, (req, res, next) => {
       const pdfDir = path.join(__dirname, '..', 'public/uploads/reports');
       fs.mkdirSync(pdfDir, { recursive: true });
 
-      const pdfResp = await axios.get(getValidUrl(data.pdf), { responseType: 'arraybuffer' });
+      const pdfResp = await axios.get(getValidUrl(data.pdf), {
+        responseType: 'arraybuffer',
+        timeout: ARTIFACT_FETCH_TIMEOUT_MS
+      });
       fs.writeFileSync(path.join(pdfDir, pdfFilename), pdfResp.data);
 
       pdfLocalPath = `/uploads/reports/${pdfFilename}`;
@@ -130,7 +148,10 @@ router.post('/analyze', requireAuth, analyzeLimiter, (req, res, next) => {
     });
   } catch (err) {
     console.error('Analyze error:', err.message);
-    res.render('error', { error: 'error connecting to flask api' });
+    const message = err.code === 'ECONNABORTED'
+      ? 'Analysis is taking longer than expected, please try again'
+      : 'error connecting to flask api';
+    res.render('error', { error: message });
   }
 });
 
