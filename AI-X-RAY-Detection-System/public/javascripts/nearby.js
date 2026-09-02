@@ -36,21 +36,20 @@
   // anti-abuse measure. The actual query now runs server-side via /api/nearby
   // (routes/pages.js), which has no CORS restriction and races the mirrors
   // itself. This just calls our own backend.
-  // Must stay comfortably above the backend's own worst-case time (it tries
-  // up to 3 Overpass mirrors sequentially within a 25s shared budget, see
-  // routes/pages.js). This used to be a flat 20s, which was *shorter* than
-  // that backend worst case — so any request that fell through to a 2nd/3rd
-  // mirror got killed client-side before the server even finished, and
-  // showed an error even though the server would've come back with results
-  // moments later. Larger radii search a bigger area and are more likely to
-  // need a fallback mirror, which is why switching to 10km/20km felt worse
-  // than the initial 5km load.
-  const FETCH_TIMEOUT_MS = 30000;
+  // Mirrors totalBudgetMsFor() in routes/pages.js, plus an ~8s buffer for
+  // network/JSON overhead on top of the server's own budget. Keep in sync —
+  // a 20km search is a much heavier Overpass query than a 5km one (area
+  // scales with radius^2), so it genuinely needs more time, not just retries.
+  function fetchTimeoutMsFor(radius) {
+    if (radius >= 15000) return 53000;
+    if (radius >= 8000) return 40000;
+    return 30000;
+  }
 
   async function fetchPlaces(lat, lon, radius) {
     const url = `/api/nearby?lat=${lat}&lon=${lon}&radius=${radius}`;
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+    const timer = setTimeout(() => controller.abort(), fetchTimeoutMsFor(radius));
     let res;
     try {
       res = await fetch(url, { signal: controller.signal });
@@ -185,15 +184,17 @@
   async function loadPlaces() {
     const myRequest = ++requestSeq; // stamp this call
     renderSkeleton();
-    // Larger radii are more likely to need a slower fallback mirror on the
-    // backend (see fetchPlaces comment), so let the user know it's not stuck.
+    const radius = parseInt(radiusSelect.value, 10);
+    // Larger radii are more likely to take a while — it's a heavier Overpass
+    // query, not the app being stuck (see fetchTimeoutMsFor above).
     const slowNoticeTimer = setTimeout(() => {
       if (myRequest === requestSeq) {
-        statusEl.textContent = 'Still searching — a wider radius can take a bit longer…';
+        statusEl.textContent = radius >= 15000
+          ? 'Still searching — a 20 km radius takes longer to compute, hang tight…'
+          : 'Still searching — a wider radius can take a bit longer…';
       }
     }, 8000);
     try {
-      const radius = parseInt(radiusSelect.value, 10);
       statusEl.textContent = 'Searching nearby hospitals, clinics & doctors…';
       console.log('[nearby] fetching radius', radius, 'around', userLatLng);
       const places = await fetchPlaces(userLatLng.lat, userLatLng.lng, radius);

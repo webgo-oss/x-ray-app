@@ -74,16 +74,36 @@ const OVERPASS_ENDPOINTS = [
   'https://overpass.openstreetmap.ru/api/interpreter'
 ];
 // Mirrors are tried sequentially (see below), so a per-mirror timeout alone
-// lets worst case balloon to N_MIRRORS x timeout (was 3 x 12s = 36s) — far
-// past the frontend's fetch abort, which is exactly what was causing radius
-// switches to "hang" and need a manual retry. Instead we cap the TOTAL time
+// lets worst case balloon to N_MIRRORS x timeout. We cap the TOTAL time
 // spent across all mirrors and shrink each attempt's timeout to whatever is
-// left of that budget, so the request always resolves (success or failure)
-// well inside the frontend's timeout.
-const OVERPASS_TOTAL_BUDGET_MS = 25000;
-// Don't bother starting another mirror if less than this remains — a request
-// that's almost certainly going to get cut off isn't worth attempting.
-const OVERPASS_MIN_ATTEMPT_MS = 6000;
+// left of that budget, so the request always resolves well inside the
+// frontend's timeout.
+//
+// Query cost scales roughly with search AREA, i.e. radius^2 — a 20km search
+// covers ~16x the area of a 5km one and can be genuinely too heavy for
+// Overpass to finish inside a flat timeout, especially over a dense city.
+// That's why 20km specifically kept failing (HTTP 504 = Overpass itself
+// self-aborting mid-computation) even when nothing was actually "down".
+// So both the query's own internal timeout and our external budget scale up
+// for larger radii, instead of using one fixed number for every radius.
+// FETCH_TIMEOUT_MS in public/javascripts/nearby.js mirrors this tiering —
+// keep the two in sync if either changes.
+function overpassQueryTimeoutSecFor(radiusMeters) {
+  if (radiusMeters >= 15000) return 35;
+  if (radiusMeters >= 8000) return 25;
+  return 20;
+}
+function totalBudgetMsFor(radiusMeters) {
+  if (radiusMeters >= 15000) return 45000;
+  if (radiusMeters >= 8000) return 32000;
+  return 22000;
+}
+// Don't bother starting another mirror if too little of the budget remains
+// to plausibly finish a query this heavy — half the query's own internal
+// timeout is a reasonable floor.
+function minAttemptMsFor(radiusMeters) {
+  return Math.max(6000, overpassQueryTimeoutSecFor(radiusMeters) * 500);
+}
 
 function haversineKm(lat1, lon1, lat2, lon2) {
   const R = 6371;
@@ -96,7 +116,7 @@ function haversineKm(lat1, lon1, lat2, lon2) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-function buildOverpassQuery(lat, lon, radiusMeters) {
+function buildOverpassQuery(lat, lon, radiusMeters, queryTimeoutSec) {
   // bbox instead of (around:) — Overpass has to compute an exact distance
   // for every candidate with (around:), which is measurably slower than an
   // indexed bbox lookup. We trim back to the real circle below with haversine.
@@ -104,7 +124,7 @@ function buildOverpassQuery(lat, lon, radiusMeters) {
   const lonDelta = radiusMeters / (111320 * Math.cos(lat * Math.PI / 180));
   const south = lat - latDelta, north = lat + latDelta;
   const west = lon - lonDelta, east = lon + lonDelta;
-  return `[out:json][timeout:20];
+  return `[out:json][timeout:${queryTimeoutSec}];
 (
   node["amenity"~"^(hospital|clinic|doctors|pharmacy)$"](${south},${west},${north},${east});
   way["amenity"~"^(hospital|clinic|doctors|pharmacy)$"](${south},${west},${north},${east});
@@ -148,12 +168,13 @@ router.get('/api/nearby', requireAuth, async (req, res) => {
     return res.status(400).json({ error: 'Invalid lat/lon' });
   }
 
-  const query = buildOverpassQuery(lat, lon, radius);
+  const query = buildOverpassQuery(lat, lon, radius, overpassQueryTimeoutSecFor(radius));
 
   try {
     const errors = [];
     let winner = null;
-    const deadline = Date.now() + OVERPASS_TOTAL_BUDGET_MS;
+    const deadline = Date.now() + totalBudgetMsFor(radius);
+    const minAttemptMs = minAttemptMsFor(radius);
 
     // Try mirrors one at a time, not all at once. Overpass instances (esp.
     // overpass-api.de) actively rate-limit/reject concurrent requests from
@@ -163,7 +184,7 @@ router.get('/api/nearby', requireAuth, async (req, res) => {
     // timeout, so total time across all mirrors is bounded (see comment above).
     for (const endpoint of OVERPASS_ENDPOINTS) {
       const remaining = deadline - Date.now();
-      if (remaining < OVERPASS_MIN_ATTEMPT_MS) {
+      if (remaining < minAttemptMs) {
         errors.push(`${endpoint}: skipped (out of time budget)`);
         break;
       }
