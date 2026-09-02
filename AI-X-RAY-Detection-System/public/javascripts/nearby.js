@@ -36,10 +36,21 @@
   // anti-abuse measure. The actual query now runs server-side via /api/nearby
   // (routes/pages.js), which has no CORS restriction and races the mirrors
   // itself. This just calls our own backend.
+  // Must stay comfortably above the backend's own worst-case time (it tries
+  // up to 3 Overpass mirrors sequentially within a 25s shared budget, see
+  // routes/pages.js). This used to be a flat 20s, which was *shorter* than
+  // that backend worst case — so any request that fell through to a 2nd/3rd
+  // mirror got killed client-side before the server even finished, and
+  // showed an error even though the server would've come back with results
+  // moments later. Larger radii search a bigger area and are more likely to
+  // need a fallback mirror, which is why switching to 10km/20km felt worse
+  // than the initial 5km load.
+  const FETCH_TIMEOUT_MS = 30000;
+
   async function fetchPlaces(lat, lon, radius) {
     const url = `/api/nearby?lat=${lat}&lon=${lon}&radius=${radius}`;
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 20000);
+    const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
     let res;
     try {
       res = await fetch(url, { signal: controller.signal });
@@ -174,6 +185,13 @@
   async function loadPlaces() {
     const myRequest = ++requestSeq; // stamp this call
     renderSkeleton();
+    // Larger radii are more likely to need a slower fallback mirror on the
+    // backend (see fetchPlaces comment), so let the user know it's not stuck.
+    const slowNoticeTimer = setTimeout(() => {
+      if (myRequest === requestSeq) {
+        statusEl.textContent = 'Still searching — a wider radius can take a bit longer…';
+      }
+    }, 8000);
     try {
       const radius = parseInt(radiusSelect.value, 10);
       statusEl.textContent = 'Searching nearby hospitals, clinics & doctors…';
@@ -194,6 +212,8 @@
         statusEl.textContent = 'Could not fetch nearby places.';
         renderError();
       }
+    } finally {
+      clearTimeout(slowNoticeTimer);
     }
   }
 

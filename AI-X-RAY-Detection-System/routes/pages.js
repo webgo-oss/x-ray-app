@@ -73,9 +73,17 @@ const OVERPASS_ENDPOINTS = [
   'https://overpass.kumi.systems/api/interpreter',
   'https://overpass.openstreetmap.ru/api/interpreter'
 ];
-// Per-mirror timeout. Kept modest because mirrors are now tried sequentially
-// (see below) — worst case is roughly 3x this if every mirror is unreachable.
-const OVERPASS_TIMEOUT_MS = 12000;
+// Mirrors are tried sequentially (see below), so a per-mirror timeout alone
+// lets worst case balloon to N_MIRRORS x timeout (was 3 x 12s = 36s) — far
+// past the frontend's fetch abort, which is exactly what was causing radius
+// switches to "hang" and need a manual retry. Instead we cap the TOTAL time
+// spent across all mirrors and shrink each attempt's timeout to whatever is
+// left of that budget, so the request always resolves (success or failure)
+// well inside the frontend's timeout.
+const OVERPASS_TOTAL_BUDGET_MS = 25000;
+// Don't bother starting another mirror if less than this remains — a request
+// that's almost certainly going to get cut off isn't worth attempting.
+const OVERPASS_MIN_ATTEMPT_MS = 6000;
 
 function haversineKm(lat1, lon1, lat2, lon2) {
   const R = 6371;
@@ -145,19 +153,27 @@ router.get('/api/nearby', requireAuth, async (req, res) => {
   try {
     const errors = [];
     let winner = null;
+    const deadline = Date.now() + OVERPASS_TOTAL_BUDGET_MS;
 
     // Try mirrors one at a time, not all at once. Overpass instances (esp.
     // overpass-api.de) actively rate-limit/reject concurrent requests from
     // the same IP — firing all mirrors simultaneously via Promise.any looks
     // like flooding and was triggering 406s. Sequential fallback avoids that.
+    // Each attempt gets whatever's left of the shared budget, not a fixed
+    // timeout, so total time across all mirrors is bounded (see comment above).
     for (const endpoint of OVERPASS_ENDPOINTS) {
+      const remaining = deadline - Date.now();
+      if (remaining < OVERPASS_MIN_ATTEMPT_MS) {
+        errors.push(`${endpoint}: skipped (out of time budget)`);
+        break;
+      }
       try {
         const r = await axios.post(endpoint, 'data=' + encodeURIComponent(query), {
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
             'User-Agent': 'AI-XRay-Detection-System/1.0 (nearby-places)'
           },
-          timeout: OVERPASS_TIMEOUT_MS
+          timeout: remaining
         });
         winner = { data: r.data, endpoint };
         break;
