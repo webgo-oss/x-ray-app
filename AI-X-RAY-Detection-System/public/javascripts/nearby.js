@@ -1,24 +1,20 @@
 (function () {
-  const OVERPASS_URL = 'https://overpass-api.de/api/interpreter';
-
   const statusEl = document.getElementById('nb-status');
   const locDebugEl = document.getElementById('nb-loc-debug');
   const listEl = document.getElementById('nb-list');
   const radiusSelect = document.getElementById('radiusSelect');
+  const locateBtn = document.getElementById('nb-locate');
   const chips = document.querySelectorAll('.nb-chip');
 
   let map, userMarker, userLatLng;
-  let markers = [];
+  let markers = {}; // place.id -> Leaflet marker
+  let cards = {}; // place.id -> card element
   let allPlaces = [];
   let activeType = 'all';
+  let activeId = null;
   let requestSeq = 0; // guards against a slow/old request overwriting a newer one
 
-  const TYPE_TAGS = {
-    hospital: ['hospital'],
-    clinic: ['clinic'],
-    doctors: ['doctors'],
-    pharmacy: ['pharmacy']
-  };
+  const BASE_LABELS = { all: 'All', hospital: 'Hospitals', clinic: 'Clinics', doctors: 'Doctors', pharmacy: 'Pharmacy' };
 
   function initMap(lat, lon) {
     map = L.map('map').setView([lat, lon], 14);
@@ -35,67 +31,32 @@
     }).addTo(map).bindPopup('You are here');
   }
 
-  function haversine(lat1, lon1, lat2, lon2) {
-    const R = 6371;
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a =
-      Math.sin(dLat / 2) ** 2 +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-      Math.sin(dLon / 2) ** 2;
-    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  }
-
-  function buildQuery(lat, lon, radius) {
-    return `[out:json][timeout:25];
-(
-  node["amenity"~"^(hospital|clinic|doctors|pharmacy)$"](around:${radius},${lat},${lon});
-  way["amenity"~"^(hospital|clinic|doctors|pharmacy)$"](around:${radius},${lat},${lon});
-);
-out center tags;`;
-  }
-
+  // The browser used to call Overpass directly, but its public mirrors
+  // block/rate-limit cross-origin browser requests (CORS + 406/429) as an
+  // anti-abuse measure. The actual query now runs server-side via /api/nearby
+  // (routes/pages.js), which has no CORS restriction and races the mirrors
+  // itself. This just calls our own backend.
   async function fetchPlaces(lat, lon, radius) {
-    statusEl.textContent = 'Searching nearby hospitals, clinics & doctors…';
-    const query = buildQuery(lat, lon, radius);
-
-    const res = await fetch(OVERPASS_URL, {
-      method: 'POST',
-      body: 'data=' + encodeURIComponent(query)
-    });
-
-    if (!res.ok) throw new Error('Overpass request failed');
-    const json = await res.json();
-
-    return (json.elements || [])
-      .map((el) => {
-        const elLat = el.lat || (el.center && el.center.lat);
-        const elLon = el.lon || (el.center && el.center.lon);
-        if (!elLat || !elLon) return null;
-
-        const tags = el.tags || {};
-        const name = tags.name || (tags.amenity ? `Unnamed ${tags.amenity}` : 'Unnamed place');
-        const address = [tags['addr:housenumber'], tags['addr:street'], tags['addr:city']]
-          .filter(Boolean).join(', ');
-
-        return {
-          id: el.id,
-          name,
-          type: tags.amenity || 'other',
-          phone: tags.phone || tags['contact:phone'] || null,
-          address: address || null,
-          lat: elLat,
-          lon: elLon,
-          distance: haversine(lat, lon, elLat, elLon)
-        };
-      })
-      .filter(Boolean)
-      .sort((a, b) => a.distance - b.distance);
+    const url = `/api/nearby?lat=${lat}&lon=${lon}&radius=${radius}`;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 20000);
+    let res;
+    try {
+      res = await fetch(url, { signal: controller.signal });
+    } finally {
+      clearTimeout(timer);
+    }
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.error || `Server responded ${res.status}`);
+    }
+    const { places } = await res.json();
+    return places;
   }
 
   function clearMarkers() {
-    markers.forEach((m) => map.removeLayer(m));
-    markers = [];
+    Object.values(markers).forEach((m) => map.removeLayer(m));
+    markers = {};
   }
 
   function typeLabel(type) {
@@ -103,13 +64,54 @@ out center tags;`;
     return map[type] || type;
   }
 
+  function updateChipCounts(places) {
+    const counts = { all: places.length, hospital: 0, clinic: 0, doctors: 0, pharmacy: 0 };
+    places.forEach((p) => { if (counts[p.type] !== undefined) counts[p.type]++; });
+    chips.forEach((chip) => {
+      const type = chip.dataset.type;
+      const label = BASE_LABELS[type] || type;
+      chip.textContent = counts[type] ? `${label} (${counts[type]})` : label;
+    });
+  }
+
+  function setActiveCard(id) {
+    if (activeId && cards[activeId]) cards[activeId].classList.remove('active');
+    activeId = id;
+    if (id && cards[id]) {
+      cards[id].classList.add('active');
+      cards[id].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+  }
+
+  function renderSkeleton() {
+    listEl.innerHTML = Array.from({ length: 5 }).map(() => `
+      <div class="nb-card nb-skeleton">
+        <div class="nb-skel-line w40"></div>
+        <div class="nb-skel-line w60"></div>
+        <div class="nb-skel-line w90"></div>
+      </div>`).join('');
+  }
+
+  function renderError() {
+    listEl.innerHTML = `
+      <div class="nb-empty">
+        Couldn't reach the map data service after trying multiple sources.
+        <br><button id="nb-retry" class="nb-retry-btn" type="button">Retry</button>
+      </div>`;
+    const retryBtn = document.getElementById('nb-retry');
+    if (retryBtn) retryBtn.addEventListener('click', loadPlaces);
+  }
+
   function render(places) {
     clearMarkers();
     listEl.innerHTML = '';
+    cards = {};
 
     const filtered = activeType === 'all'
       ? places
       : places.filter((p) => p.type === activeType);
+
+    updateChipCounts(places);
 
     if (filtered.length === 0) {
       listEl.innerHTML = '<div class="nb-empty">No results in this radius. Try a wider radius or a different filter.</div>';
@@ -119,13 +121,18 @@ out center tags;`;
 
     statusEl.textContent = `${filtered.length} result${filtered.length > 1 ? 's' : ''} found`;
 
+    const bounds = [[userLatLng.lat, userLatLng.lng]];
+
     filtered.slice(0, 60).forEach((place) => {
       const marker = L.marker([place.lat, place.lon]).addTo(map)
-        .bindPopup(`<b>${escapeHtml(place.name)}</b><br>${typeLabel(place.type)}`);
-      markers.push(marker);
+        .bindPopup(`<b>${escapeHtml(place.name)}</b><br>${typeLabel(place.type)} · ${place.distance.toFixed(2)} km`);
+      marker.on('click', () => setActiveCard(place.id));
+      markers[place.id] = marker;
+      bounds.push([place.lat, place.lon]);
 
       const card = document.createElement('div');
       card.className = 'nb-card';
+      card.tabIndex = 0;
       const gmapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${place.lat},${place.lon}`;
       card.innerHTML = `
         <div class="nb-card-type">${typeLabel(place.type)}</div>
@@ -137,14 +144,25 @@ out center tags;`;
         </div>
         <div class="nb-card-actions">
           <a href="${gmapsUrl}" target="_blank" rel="noopener">Get Directions</a>
+          ${place.phone ? `<a href="tel:${escapeHtml(place.phone)}">Call</a>` : ''}
         </div>
       `;
-      card.addEventListener('click', () => {
+      const select = () => {
+        setActiveCard(place.id);
         map.setView([place.lat, place.lon], 17);
-        marker.openPopup();
+        markers[place.id].openPopup();
+      };
+      card.addEventListener('click', select);
+      card.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); select(); }
       });
+      cards[place.id] = card;
       listEl.appendChild(card);
     });
+
+    if (bounds.length > 1) {
+      map.fitBounds(bounds, { padding: [30, 30], maxZoom: 15 });
+    }
   }
 
   function escapeHtml(str) {
@@ -155,8 +173,10 @@ out center tags;`;
 
   async function loadPlaces() {
     const myRequest = ++requestSeq; // stamp this call
+    renderSkeleton();
     try {
       const radius = parseInt(radiusSelect.value, 10);
+      statusEl.textContent = 'Searching nearby hospitals, clinics & doctors…';
       console.log('[nearby] fetching radius', radius, 'around', userLatLng);
       const places = await fetchPlaces(userLatLng.lat, userLatLng.lng, radius);
 
@@ -171,7 +191,8 @@ out center tags;`;
     } catch (err) {
       console.error(err);
       if (myRequest === requestSeq) {
-        statusEl.textContent = 'Could not fetch nearby places. Please try again.';
+        statusEl.textContent = 'Could not fetch nearby places.';
+        renderError();
       }
     }
   }
@@ -186,6 +207,29 @@ out center tags;`;
   });
 
   radiusSelect.addEventListener('change', loadPlaces);
+
+  if (locateBtn) {
+    locateBtn.addEventListener('click', () => {
+      if (!navigator.geolocation) return;
+      locateBtn.classList.add('spinning');
+      statusEl.textContent = 'Getting your location…';
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          locateBtn.classList.remove('spinning');
+          userLatLng = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+          map.setView([userLatLng.lat, userLatLng.lng], 14);
+          userMarker.setLatLng([userLatLng.lat, userLatLng.lng]);
+          loadPlaces();
+        },
+        (err) => {
+          locateBtn.classList.remove('spinning');
+          console.error(err);
+          statusEl.textContent = 'Could not get your location. Check location permissions.';
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    });
+  }
 
   function start(lat, lon, accuracyMeters) {
     userLatLng = { lat, lng: lon };

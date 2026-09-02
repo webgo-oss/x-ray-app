@@ -22,4 +22,16 @@ const analyzeLimiter = rateLimit({
   }
 });
 
-module.exports = { authLimiter, analyzeLimiter };
+// Kept for routes/nearby.js, which is currently NOT mounted in active.js —
+// the live /api/nearby implementation lives in routes/pages.js instead.
+const nearbyLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000, // 10 minutes
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res) => {
+    res.status(429).json({ error: 'Too many requests. Please slow down and try again shortly.' });
+  }
+});
+
+module.exports = { authLimiter, analyzeLimiter, nearbyLimiter };
