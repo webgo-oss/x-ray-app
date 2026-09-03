@@ -222,3 +222,13 @@ router.get('/api/nearby', requireAuth, async (req, res) => {
 });
 
 module.exports = router;
+// Exposed purely for unit testing (see test/nearby.test.js) — the route
+// handler above is the real entrypoint and this doesn't change that.
+module.exports._internal = {
+  haversineKm,
+  buildOverpassQuery,
+  parseOverpassPlaces,
+  overpassQueryTimeoutSecFor,
+  totalBudgetMsFor,
+  minAttemptMsFor
+};
