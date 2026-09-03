@@ -1,10 +1,8 @@
 uploads
 node_modules
 heatmaps
-x-rays-models/models
+models
+!AI-X-RAY-Detection-System/models/
 __pycache__
 x-rays-models/static
 .env
-AI-X-RAY-Detection-System/public/videos/
-AI-X-RAY-Detection-System/public/uploads/
-AI-X-RAY-Detection-System/public/images/

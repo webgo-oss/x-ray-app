@@ -29,13 +29,20 @@ router.post('/register', authLimiter, doubleCsrfProtection, registerValidation, 
 router.post('/login', authLimiter, doubleCsrfProtection, loginValidation, validate, async (req, res) => {
   const { loginemail, loginpassword } = req.body;
   try {
+    // Same message either way — confirming "that email doesn't exist" vs
+    // "that password is wrong" tells an attacker which emails are registered.
+    const invalidCredentials = () => res.status(401).render('login', {
+      error: 'Incorrect email or password',
+      activeForm: 'login',
+      oldInput: { loginemail },
+      csrfToken: generateCsrfToken(req, res)
+    });
+
     const user = await User.findOne({ email: loginemail });
-    if (!user) return res.render('error', { error: 'User not found' });
+    if (!user) return invalidCredentials();
 
     const match = await bcrypt.compare(loginpassword, user.password);
-    if (!match) {
-      return res.render('error', { error: 'Incorrect password' });
-    }
+    if (!match) return invalidCredentials();
 
     const sessionUser = {
       id: user._id.toString(),

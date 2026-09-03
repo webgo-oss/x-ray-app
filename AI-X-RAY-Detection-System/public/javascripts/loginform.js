@@ -1,5 +1,5 @@
 
-    let isLogin = false;
+    let isLogin = typeof window.__initialFormIsLogin !== 'undefined' ? window.__initialFormIsLogin : false;
 
     function toggleForm() {
       const title = document.getElementById("form-title");

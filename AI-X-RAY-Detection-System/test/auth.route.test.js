@@ -145,13 +145,13 @@ describe('POST /login', () => {
     expect(User.findOne).not.toHaveBeenCalled();
   });
 
-  test("renders an error, not a 500, when the user doesn't exist", async () => {
+  test("renders the login page with a 401, not a 500, when the user doesn't exist", async () => {
     User.findOne.mockResolvedValue(null);
     const app = buildApp();
     const res = await request(app).post('/login').send(LOGIN_BODY).type('form');
 
-    expect(res.status).toBe(200); // res.render('error', ...) with no explicit status
-    expect(res.text.toLowerCase()).toContain('user not found');
+    expect(res.status).toBe(401);
+    expect(res.text.toLowerCase()).toContain('incorrect email or password');
   });
 
   test('rejects an incorrect password without revealing whether it was the email or password', async () => {
@@ -160,7 +160,9 @@ describe('POST /login', () => {
     const app = buildApp();
     const res = await request(app).post('/login').send(LOGIN_BODY).type('form');
 
-    expect(res.text.toLowerCase()).toContain('incorrect password');
+    expect(res.status).toBe(401);
+    // Identical wording to the "user doesn't exist" case above — that's the point.
+    expect(res.text.toLowerCase()).toContain('incorrect email or password');
   });
 
   test('on success, regenerates the session and stores a safe subset of the user', async () => {
