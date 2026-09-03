@@ -33,13 +33,20 @@ pip install -r requirements.txt
 wherever the team originally downloaded/trained it and drop it in as
 `x-rays-models/models/`.
 
+Optional — copy `.env` for custom port/host/debug/threshold settings:
+
+```bash
+cp .env.example .env
+```
+
 Run it:
 
 ```bash
 python app.py
 ```
 
-Runs on `http://127.0.0.1:5000`.
+Runs on `http://127.0.0.1:5000` by default. If you change its port, update
+`FLASK_URL` in the Node `.env` to match.
 
 ### 2. Node service (`AI-X-RAY-Detection-System/`)
 

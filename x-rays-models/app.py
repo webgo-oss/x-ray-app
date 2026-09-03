@@ -1,6 +1,9 @@
 from flask import Flask, request, jsonify, send_from_directory
 import os, cv2, numpy as np, torch
 from datetime import datetime
+from dotenv import load_dotenv
+
+load_dotenv()
 from PIL import Image
 import tensorflow as tf
 from transformers import AutoImageProcessor, AutoModelForImageClassification
@@ -23,7 +26,7 @@ os.makedirs(PDF_FOLDER, exist_ok=True)
 
 MODEL_DIR = 'models'
 X_RAY_MODEL_PATH = "xray_classifier.keras"
-X_RAY_THRESHOLD = 0.8
+X_RAY_THRESHOLD = float(os.environ.get('X_RAY_THRESHOLD', 0.8))
 
 xray_model = tf.keras.models.load_model(X_RAY_MODEL_PATH, compile=False)
 processor = AutoImageProcessor.from_pretrained(MODEL_DIR, local_files_only=True)
@@ -174,4 +177,11 @@ def predict():
 
 
 if __name__ == '__main__':
-    app.run(port=5000, debug=True, use_reloader=False)
+    # Bind to 127.0.0.1 by default so this is never reachable from outside the
+    # host it's running on — Node is the only thing that should ever talk to
+    # it. Override FLASK_HOST/PORT only when you know why (e.g. containerized
+    # deployment where Node and Flask are separate containers).
+    host = os.environ.get('FLASK_HOST', '127.0.0.1')
+    port = int(os.environ.get('PORT', 5000))
+    debug = os.environ.get('FLASK_DEBUG', 'false').lower() == 'true'
+    app.run(host=host, port=port, debug=debug, use_reloader=False)

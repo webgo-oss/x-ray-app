@@ -11,6 +11,11 @@ const { doubleCsrfProtection } = require('../middleware/csrf');
 
 const router = express.Router();
 
+// Where the Flask ML service lives. Hardcoding this breaks the moment the two
+// services aren't both on localhost (Docker, separate hosts, etc.) — set
+// FLASK_URL in .env to override.
+const FLASK_URL = process.env.FLASK_URL || 'http://127.0.0.1:5000';
+
 // Flask can occasionally hang (model warm-up, GPU contention, etc.) — without
 // a timeout, the request (and the disabled Analyze button on the client)
 // would just wait forever instead of failing back to the user.
@@ -33,7 +38,7 @@ router.post('/verify-xray', requireAuth, analyzeLimiter, memoryUpload.single('xr
     const formData = new FormData();
     formData.append('xray', req.file.buffer, req.file.originalname);
 
-    const response = await axios.post('http://127.0.0.1:5000/verify-xray', formData, {
+    const response = await axios.post(`${FLASK_URL}/verify-xray`, formData, {
       headers: formData.getHeaders(),
       maxBodyLength: Infinity,
       timeout: QUICK_CHECK_TIMEOUT_MS
@@ -52,7 +57,7 @@ router.post('/verify-xray', requireAuth, analyzeLimiter, memoryUpload.single('xr
 function getValidUrl(url) {
   if (!url) return null;
   if (url.startsWith('http')) return url;
-  return `http://127.0.0.1:5000${url}`;
+  return `${FLASK_URL}${url}`;
 }
 
 router.post('/analyze', requireAuth, analyzeLimiter, (req, res, next) => {
@@ -69,7 +74,7 @@ router.post('/analyze', requireAuth, analyzeLimiter, (req, res, next) => {
     const formData = new FormData();
     formData.append('xray', fs.createReadStream(req.file.path));
 
-    const response = await axios.post('http://127.0.0.1:5000/predict', formData, {
+    const response = await axios.post(`${FLASK_URL}/predict`, formData, {
       headers: formData.getHeaders(),
       maxBodyLength: Infinity,
       timeout: FULL_ANALYZE_TIMEOUT_MS
