@@ -119,7 +119,10 @@ router.post('/analyze', requireAuth, analyzeLimiter, (req, res, next) => {
       });
       // resource_type: 'raw' — Cloudinary treats PDFs as images by default
       // and tries to transform them, which we don't want here.
-      pdfUrl = await uploadBuffer(Buffer.from(pdfResp.data), { folder: 'xray-app/reports', resourceType: 'raw' });
+      // format: 'pdf' — without this, Cloudinary gives raw uploads a random
+      // public_id with no extension, so the file downloads as a generic
+      // "file" instead of being recognized as a PDF.
+      pdfUrl = await uploadBuffer(Buffer.from(pdfResp.data), { folder: 'xray-app/reports', resourceType: 'raw', format: 'pdf' });
     }
 
     await Scan.create({

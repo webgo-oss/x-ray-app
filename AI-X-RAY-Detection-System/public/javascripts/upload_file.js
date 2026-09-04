@@ -166,6 +166,13 @@
           showUploadError(error);
         } else {
           clearUploadError();
+          // The form does a real full-page POST to /analyze (up to ~30s:
+          // classification + gradcam + PDF + Cloudinary uploads). Without
+          // this, there's no visual feedback at all during that wait — the
+          // overlay/video just stays on screen until the browser replaces
+          // the page with the /analyze response, so no setChecking(false)
+          // is needed here.
+          setChecking(true);
         }
       });
     }
