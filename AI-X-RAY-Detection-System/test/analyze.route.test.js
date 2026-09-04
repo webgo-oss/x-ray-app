@@ -4,6 +4,9 @@ jest.mock('../middleware/csrf', () => ({
   generateCsrfToken: () => 'test-csrf-token',
   doubleCsrfProtection: (req, res, next) => next()
 }));
+jest.mock('../config/cloudinary', () => ({
+  uploadBuffer: jest.fn()
+}));
 
 const axios = require('axios');
 const Scan = require('../models/Scan');
@@ -98,11 +101,10 @@ describe('POST /verify-xray', () => {
 });
 
 describe('POST /analyze', () => {
-  // The real xrayUpload middleware writes to disk, which this route depends
-  // on entirely for req.file — swap it for a stub that behaves the same way
-  // without touching the filesystem, and stub out the fs calls the handler
-  // itself makes for saving heatmap/pdf artifacts.
-  let fs;
+  // The real xrayUpload middleware now uses multer's memoryStorage (no disk
+  // I/O) — swap it for a stub that behaves the same way, and mock
+  // uploadBuffer (config/cloudinary) instead of the old fs disk-write calls.
+  let uploadBufferMock;
 
   function mockUploadWithFile(file) {
     jest.doMock('../middleware/upload', () => ({
@@ -125,10 +127,8 @@ describe('POST /analyze', () => {
       generateCsrfToken: () => 'test-csrf-token',
       doubleCsrfProtection: (req, res, next) => next()
     }));
-    fs = require('fs');
-    jest.spyOn(fs, 'createReadStream').mockReturnValue('fake-stream');
-    jest.spyOn(fs, 'writeFileSync').mockImplementation(() => {});
-    jest.spyOn(fs, 'mkdirSync').mockImplementation(() => {});
+    uploadBufferMock = jest.fn().mockResolvedValue('https://res.cloudinary.com/demo/image/upload/fake.png');
+    jest.doMock('../config/cloudinary', () => ({ uploadBuffer: uploadBufferMock }));
   });
 
   afterEach(() => {
@@ -170,7 +170,7 @@ describe('POST /analyze', () => {
   });
 
   test('a positive prediction saves a Scan record and renders the result', async () => {
-    mockUploadWithFile({ path: '/tmp/x.jpg', filename: 'x.jpg', originalname: 'x.jpg' });
+    mockUploadWithFile({ buffer: Buffer.from('fake-bytes'), originalname: 'x.jpg' });
     const analyzeAxios = require('axios');
     const ScanModel = require('../models/Scan');
     analyzeAxios.post.mockResolvedValue({ data: { prediction: 'Fracture', confidence: 92.5, heatmap: null, pdf: null } });
@@ -181,16 +181,18 @@ describe('POST /analyze', () => {
     const res = await request(app).post('/analyze');
 
     expect(res.status).toBe(200);
+    expect(uploadBufferMock).toHaveBeenCalledWith(expect.any(Buffer), { folder: 'xray-app/originals' });
     expect(ScanModel.create).toHaveBeenCalledWith(expect.objectContaining({
       user_id: 'u1',
       prediction: 'Fracture',
-      confidence: 92.5
+      confidence: 92.5,
+      original_image: 'https://res.cloudinary.com/demo/image/upload/fake.png'
     }));
     expect(res.text).toContain('Fracture');
   });
 
   test('a null prediction ("not an x-ray") is NOT saved to scan history', async () => {
-    mockUploadWithFile({ path: '/tmp/x.jpg', filename: 'x.jpg', originalname: 'x.jpg' });
+    mockUploadWithFile({ buffer: Buffer.from('fake-bytes'), originalname: 'x.jpg' });
     const analyzeAxios = require('axios');
     const ScanModel = require('../models/Scan');
     analyzeAxios.post.mockResolvedValue({ data: { prediction: null } });
@@ -202,10 +204,13 @@ describe('POST /analyze', () => {
     expect(res.status).toBe(200);
     expect(ScanModel.create).not.toHaveBeenCalled();
     expect(res.text).toContain('Not an X-ray');
+    // Even a rejected ("not an x-ray") upload still gets a permanent URL —
+    // the result page shows the original regardless of the outcome.
+    expect(uploadBufferMock).toHaveBeenCalledWith(expect.any(Buffer), { folder: 'xray-app/originals' });
   });
 
-  test('downloads and saves the heatmap image returned by Flask', async () => {
-    mockUploadWithFile({ path: '/tmp/x.jpg', filename: 'x.jpg', originalname: 'x.jpg' });
+  test('uploads the heatmap Flask returns to Cloudinary and stores its URL', async () => {
+    mockUploadWithFile({ buffer: Buffer.from('fake-bytes'), originalname: 'x.jpg' });
     const analyzeAxios = require('axios');
     const ScanModel = require('../models/Scan');
     analyzeAxios.post.mockResolvedValue({
@@ -214,6 +219,9 @@ describe('POST /analyze', () => {
     analyzeAxios.get.mockResolvedValue({ data: Buffer.from('fake-png-bytes') });
     ScanModel.countDocuments.mockResolvedValue(1);
     ScanModel.create.mockResolvedValue({});
+    uploadBufferMock
+      .mockResolvedValueOnce('https://res.cloudinary.com/demo/image/upload/original.png')
+      .mockResolvedValueOnce('https://res.cloudinary.com/demo/image/upload/heatmap.png');
 
     const app = buildAnalyzeApp();
     const res = await request(app).post('/analyze');
@@ -223,14 +231,14 @@ describe('POST /analyze', () => {
       'http://127.0.0.1:5000/static/heatmap123.png',
       expect.objectContaining({ responseType: 'arraybuffer' })
     );
-    expect(fs.writeFileSync).toHaveBeenCalled();
+    expect(uploadBufferMock).toHaveBeenCalledWith(expect.any(Buffer), { folder: 'xray-app/heatmaps' });
     expect(ScanModel.create).toHaveBeenCalledWith(expect.objectContaining({
-      heatmap_image: '/uploads/heatmap123.png'
+      heatmap_image: 'https://res.cloudinary.com/demo/image/upload/heatmap.png'
     }));
   });
 
   test('a Flask timeout renders a friendly error, not a 500 crash', async () => {
-    mockUploadWithFile({ path: '/tmp/x.jpg', filename: 'x.jpg', originalname: 'x.jpg' });
+    mockUploadWithFile({ buffer: Buffer.from('fake-bytes'), originalname: 'x.jpg' });
     const analyzeAxios = require('axios');
     const err = new Error('timeout of 30000ms exceeded');
     err.code = 'ECONNABORTED';
@@ -246,7 +254,7 @@ describe('POST /analyze', () => {
   });
 
   test('requires auth', async () => {
-    mockUploadWithFile({ path: '/tmp/x.jpg', filename: 'x.jpg', originalname: 'x.jpg' });
+    mockUploadWithFile({ buffer: Buffer.from('fake-bytes'), originalname: 'x.jpg' });
     const analyzeAxios = require('axios');
     const app = buildAnalyzeApp({ authed: false });
 

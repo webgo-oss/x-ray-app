@@ -10,9 +10,18 @@
   
 </head>
 <body>
+<%
+  // Same helper as index.ejs / xrayresult.ejs — profile_image is either a
+  // Cloudinary URL (uploaded pic) or the legacy 'default.jpg' filename.
+  function profileImgSrc(u) {
+    var img = u && u.profile_image;
+    if (img && /^https?:\/\//.test(img)) return img;
+    return '/uploads/' + (img || 'default.jpg');
+  }
+%>
   <aside class="sidebar">
     <div class="logo">
-      <img src="/uploads/<%= user.profile_image || 'default.jpg' %>" >
+      <img src="<%= profileImgSrc(user) %>" >
     </div>
     <nav class="menu">
       <a class="active" onclick="showDashboard()">Overview</a>
@@ -119,7 +128,7 @@ Each upload helps improve detection of fractures and anomalies in hands, knees, 
     <source src="./videos/user.mp4" type="video/webm" />
   </video> -->
        <div class="glass-card" id="main-profile">
-    <img src="/uploads/<%= user.profile_image || 'default.jpg' %>" alt="Logo" class="logo-image" />
+    <img src="<%= profileImgSrc(user) %>" alt="Logo" class="logo-image" />
     <div class="content">
       <h4> <%= user.email %> </h4>
       <h1><%= user.name %></h1>
@@ -137,7 +146,7 @@ Each upload helps improve detection of fractures and anomalies in hands, knees, 
   <input type="hidden" name="_csrf" value="<%= csrfToken %>">
   <div class="form-top">
     <div class="image-preview">
-      <img src="/uploads/<%= user.profile_image || 'default.jpg' %>" alt="Profile Image" id="profileImage">
+      <img src="<%= profileImgSrc(user) %>" alt="Profile Image" id="profileImage">
     </div>
     <div class="file-upload">
       <input type="file" name="profilepic" accept="image/*" id="fileInput">

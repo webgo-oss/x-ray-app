@@ -8,6 +8,14 @@
 <link rel="stylesheet" href="./stylesheets/result.css">
 </head>
 <body>
+<%
+  // Same helper as index.ejs / userdashboard.ejs.
+  function profileImgSrc(u) {
+    var img = u && u.profile_image;
+    if (img && /^https?:\/\//.test(img)) return img;
+    return '/uploads/' + (img || 'default.jpg');
+  }
+%>
   <div class="container">
     <div class="left">
       <h2>X-Ray Scan Console</h2>
@@ -30,7 +38,7 @@
 
     <div class="right">
       <div class="user-card">
-        <img src="/uploads/<%= user.profile_image %>" alt="User Photo">
+        <img src="<%= profileImgSrc(user) %>" alt="User Photo">
         <div class="user-info">
           <strong><%= user.name %></strong>
           <span>Age: <%= user.age %></span>

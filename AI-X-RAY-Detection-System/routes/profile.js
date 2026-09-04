@@ -4,15 +4,22 @@ const { requireAuth } = require('../middleware/auth');
 const { upload } = require('../middleware/upload');
 const { updateProfileValidation, validate } = require('../middleware/validators');
 const { doubleCsrfProtection } = require('../middleware/csrf');
+const { uploadBuffer } = require('../config/cloudinary');
 
 const router = express.Router();
 
 router.post('/updateprofile', requireAuth, upload.single('profilepic'), doubleCsrfProtection, updateProfileValidation, validate, async (req, res) => {
   const userId = req.session.user.id;
   const { updateprofilename, gender, age } = req.body;
-  const profileImage = req.file ? req.file.filename : req.session.user.profile_image || 'default.jpg';
 
   try {
+    // upload middleware now uses multer's memoryStorage (see middleware/upload.js),
+    // so a new picture is a buffer in memory, not a file already on disk — it needs
+    // uploading to Cloudinary here to get a permanent URL to store.
+    const profileImage = req.file
+      ? await uploadBuffer(req.file.buffer, { folder: 'xray-app/profile-pics' })
+      : req.session.user.profile_image || 'default.jpg';
+
     await User.findByIdAndUpdate(userId, {
       name: updateprofilename,
       gender,

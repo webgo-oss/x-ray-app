@@ -1,12 +1,12 @@
 const multer = require('multer');
 const path = require('path');
 
-const storage = multer.diskStorage({
-  destination: './public/uploads/',
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname));
-  }
-});
+// Files never touch this server's disk at all now — they're held in memory
+// just long enough to forward to Flask / upload to Cloudinary. This also
+// means uploads work correctly even on hosts with an ephemeral filesystem
+// (Render's free tier, most PaaS free tiers) where a disk write would
+// silently vanish on the next restart.
+const storage = multer.memoryStorage();
 
 const upload = multer({
   storage,

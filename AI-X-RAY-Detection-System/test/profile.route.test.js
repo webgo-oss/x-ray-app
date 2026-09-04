@@ -105,6 +105,48 @@ describe('POST /updateprofile', () => {
     );
   });
 
+  test('uploads a new profile picture to Cloudinary and stores its URL', async () => {
+    jest.resetModules();
+    jest.doMock('../models/User');
+    jest.doMock('../middleware/csrf', () => ({
+      generateCsrfToken: () => 'test-csrf-token',
+      doubleCsrfProtection: (req, res, next) => next()
+    }));
+    // This time actually set req.file, the way a real memoryStorage upload
+    // would — a buffer, not a path/filename (that's the bug this test guards
+    // against: profile.js used to read req.file.filename, which memoryStorage
+    // never sets).
+    jest.doMock('../middleware/upload', () => ({
+      upload: { single: () => (req, res, next) => { req.file = { buffer: Buffer.from('fake-bytes'), originalname: 'pic.jpg' }; next(); } },
+      xrayUpload: { single: () => (req, res, next) => next() }
+    }));
+    const uploadBufferMock = jest.fn().mockResolvedValue('https://res.cloudinary.com/demo/image/upload/pic.jpg');
+    jest.doMock('../config/cloudinary', () => ({ uploadBuffer: uploadBufferMock }));
+
+    const UserModel = require('../models/User');
+    UserModel.findByIdAndUpdate.mockResolvedValue({});
+    const express2 = require('express');
+    const request2 = require('supertest');
+    const profileRoutes2 = require('../routes/profile');
+
+    const app = express2();
+    app.set('view engine', 'ejs');
+    app.set('views', path.join(__dirname, '..', 'views'));
+    app.use(express2.urlencoded({ extended: true }));
+    const sessionUser = { id: 'u1', name: 'Old Name', gender: 'Female', age: 30, profile_image: 'old.jpg' };
+    app.use((req, res, next) => { req.session = { user: sessionUser }; next(); });
+    app.use('/', profileRoutes2);
+
+    await request2(app).post('/updateprofile').type('form').send(VALID_UPDATE);
+
+    expect(uploadBufferMock).toHaveBeenCalledWith(expect.any(Buffer), { folder: 'xray-app/profile-pics' });
+    expect(UserModel.findByIdAndUpdate).toHaveBeenCalledWith(
+      'u1',
+      expect.objectContaining({ profile_image: 'https://res.cloudinary.com/demo/image/upload/pic.jpg' }),
+      expect.anything()
+    );
+  });
+
   test('surfaces a Mongoose ValidationError message instead of a generic 500', async () => {
     const validationErr = new Error('Validation failed');
     validationErr.name = 'ValidationError';

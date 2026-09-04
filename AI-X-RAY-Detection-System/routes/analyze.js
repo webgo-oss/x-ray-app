@@ -1,6 +1,4 @@
 const express = require('express');
-const path = require('path');
-const fs = require('fs');
 const axios = require('axios');
 const FormData = require('form-data');
 const Scan = require('../models/Scan');
@@ -8,6 +6,7 @@ const { requireAuth } = require('../middleware/auth');
 const { xrayUpload } = require('../middleware/upload');
 const { analyzeLimiter } = require('../middleware/rateLimiters');
 const { doubleCsrfProtection } = require('../middleware/csrf');
+const { uploadBuffer } = require('../config/cloudinary');
 
 const router = express.Router();
 
@@ -72,7 +71,7 @@ router.post('/analyze', requireAuth, analyzeLimiter, (req, res, next) => {
     if (!req.file) return res.status(400).send('No file uploaded');
 
     const formData = new FormData();
-    formData.append('xray', fs.createReadStream(req.file.path));
+    formData.append('xray', req.file.buffer, req.file.originalname);
 
     const response = await axios.post(`${FLASK_URL}/predict`, formData, {
       headers: formData.getHeaders(),
@@ -83,58 +82,53 @@ router.post('/analyze', requireAuth, analyzeLimiter, (req, res, next) => {
     const data = response.data;
     let count = await Scan.countDocuments({ user_id: req.session.user.id });
 
+    // The original upload always needs a permanent home regardless of the
+    // prediction outcome, so it's uploaded to Cloudinary up front and reused
+    // in both the "not an x-ray" and normal result paths below.
+    const originalUrl = await uploadBuffer(req.file.buffer, { folder: 'xray-app/originals' });
+
     if (!data.prediction || data.prediction === null) {
       console.log('Not an X-ray. Skipping history insert.');
       return res.render('xrayresult', {
         user: req.session.user,
         data: {
-          original: `/uploads/${req.file.filename}`,
+          original: originalUrl,
           heatmap: null,
           prediction: 'Not an X-ray',
           confidence: null,
-          filename: req.file.filename,
           pdf: null
         },
         count
       });
     }
 
-    let heatmapLocalPath = null;
+    let heatmapUrl = null;
     if (data.heatmap) {
-      const heatmapFilename = path.basename(data.heatmap);
-      const nodePath = path.join(__dirname, '..', 'public/uploads', heatmapFilename);
-
       const heatmapResp = await axios.get(getValidUrl(data.heatmap), {
         responseType: 'arraybuffer',
         timeout: ARTIFACT_FETCH_TIMEOUT_MS
       });
-      fs.writeFileSync(nodePath, heatmapResp.data);
-
-      heatmapLocalPath = `/uploads/${heatmapFilename}`;
+      heatmapUrl = await uploadBuffer(Buffer.from(heatmapResp.data), { folder: 'xray-app/heatmaps' });
     }
 
-    let pdfLocalPath = null;
+    let pdfUrl = null;
     if (data.pdf) {
-      const pdfFilename = path.basename(data.pdf);
-      const pdfDir = path.join(__dirname, '..', 'public/uploads/reports');
-      fs.mkdirSync(pdfDir, { recursive: true });
-
       const pdfResp = await axios.get(getValidUrl(data.pdf), {
         responseType: 'arraybuffer',
         timeout: ARTIFACT_FETCH_TIMEOUT_MS
       });
-      fs.writeFileSync(path.join(pdfDir, pdfFilename), pdfResp.data);
-
-      pdfLocalPath = `/uploads/reports/${pdfFilename}`;
+      // resource_type: 'raw' — Cloudinary treats PDFs as images by default
+      // and tries to transform them, which we don't want here.
+      pdfUrl = await uploadBuffer(Buffer.from(pdfResp.data), { folder: 'xray-app/reports', resourceType: 'raw' });
     }
 
     await Scan.create({
       user_id: req.session.user.id,
-      original_image: `/uploads/${req.file.filename}`,
-      heatmap_image: heatmapLocalPath,
+      original_image: originalUrl,
+      heatmap_image: heatmapUrl,
       prediction: data.prediction,
       confidence: data.confidence,
-      pdf_report: pdfLocalPath
+      pdf_report: pdfUrl
     });
 
     count = await Scan.countDocuments({ user_id: req.session.user.id });
@@ -142,12 +136,11 @@ router.post('/analyze', requireAuth, analyzeLimiter, (req, res, next) => {
     res.render('xrayresult', {
       user: req.session.user,
       data: {
-        original: `/uploads/${req.file.filename}`,
-        heatmap: heatmapLocalPath,
+        original: originalUrl,
+        heatmap: heatmapUrl,
         prediction: data.prediction,
         confidence: data.confidence,
-        filename: req.file.filename,
-        pdf: pdfLocalPath
+        pdf: pdfUrl
       },
       count
     });
