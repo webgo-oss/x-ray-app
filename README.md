@@ -1,208 +1,194 @@
 # 🩻 AI X-Ray Detection System
 
-An AI-assisted X-ray analysis tool. Upload an X-ray (elbow, hand, or knee) and
-get back a fracture prediction, a Grad-CAM heatmap showing *where* the model
-is looking, and a downloadable PDF report.
+**AI-powered fracture detection from X-ray images — with explainable
+visual heatmaps and instant PDF medical reports.**
 
-Built for demo/hackathon speed: one Docker container, one Render web
-service, model weights pulled from Google Drive instead of bloating the git
-repo.
+![Node.js](https://img.shields.io/badge/Node.js-Express-339933?logo=node.js&logoColor=white)
+![Flask](https://img.shields.io/badge/Flask-Python-000000?logo=flask&logoColor=white)
+![TensorFlow](https://img.shields.io/badge/TensorFlow-Keras-FF6F00?logo=tensorflow&logoColor=white)
+![PyTorch](https://img.shields.io/badge/PyTorch-HuggingFace-EE4C2C?logo=pytorch&logoColor=white)
+![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?logo=mongodb&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Containerized-2496ED?logo=docker&logoColor=white)
 
 ---
 
-## 📐 How it's put together
+## 🚀 The Problem
+
+Reading X-rays takes trained radiologists, and in under-resourced clinics,
+overloaded ERs, or remote areas, that expertise isn't always available fast
+enough. A missed or delayed fracture read can mean a patient goes home
+untreated.
+
+## 💡 Our Solution
+
+**AI X-Ray Detection System** gives anyone — a clinician, a triage nurse, a
+student — an instant second opinion on an X-ray. Upload an image and the
+system:
+
+1. **Verifies it's actually an X-ray** (filters out irrelevant uploads
+   before wasting compute on them)
+2. **Classifies it for fractures** using a fine-tuned vision transformer
+3. **Generates a Grad-CAM heatmap** so the prediction isn't a black box —
+   you can see exactly which region of the bone drove the model's decision
+4. **Produces a downloadable PDF report**, ready to attach to a patient
+   record or share with a physician
+
+All of this happens in seconds, through a clean web interface with
+authentication, so results are tied to a real user session — not an
+anonymous one-off tool.
+
+---
+
+## ✨ Features
+
+- 🔐 **Secure authentication** — session-based login with CSRF protection
+- 🖼️ **Drag-and-drop X-ray upload** — elbow, hand, and knee X-rays supported
+- 🧠 **Two-stage ML pipeline** — a lightweight Keras gatekeeper model filters
+  non-X-ray images before the heavier fracture-detection model runs
+- 🔥 **Grad-CAM explainability** — visual heatmap overlay showing the exact
+  region the model attended to, not just a bare "fracture / no fracture" label
+- 📄 **One-click PDF reports** — generated server-side and ready to download
+  or share
+- ☁️ **Cloud-backed storage** — uploads, heatmaps, and reports persist via
+  Cloudinary, so nothing is lost on redeploys
+- 🐳 **Single-container deployment** — the whole stack (frontend, backend,
+  and both ML models) ships as one Docker image
+
+---
+
+## 🏗️ Architecture
 
 ```
- browser
+ Browser
    │
    ▼
- Node/Express  (port 3000, or $PORT on Render) ── the only public-facing part
-   │
-   ▼  internal HTTP call
- Flask ML service (127.0.0.1:5000, never exposed outside the container)
-   │
+ Node.js / Express  ──  auth, sessions, UI, file uploads
+   │  (internal HTTP call, never exposed externally)
    ▼
- Keras classifier ("is this actually an x-ray?")
- HuggingFace model ("is it fractured, and where?")
+ Flask ML Service  ──  runs entirely inside the same container
+   │
+   ├── Keras CNN            → "Is this actually an X-ray?"
+   └── HuggingFace ViT       → "Is it fractured, and where?"
+        + Grad-CAM            → heatmap generation
+        + ReportLab           → PDF report generation
 ```
 
-| Folder | Role |
+Both services run in a single Docker container for simplicity — Flask is
+bound to `127.0.0.1` internally and is never reachable from outside, so
+Node/Express is the only public surface.
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Tech |
 |---|---|
-| `AI-X-RAY-Detection-System/` | Node/Express app — auth, sessions, upload UI, PDF/report display. |
-| `x-rays-models/` | Flask app — runs the Keras + HuggingFace models, generates Grad-CAM heatmaps and PDFs. |
-| `Dockerfile` + `start.sh` | Build both services into one image; `start.sh` boots Flask first, then Node, and downloads the model from Drive if it's missing. |
+| Frontend | EJS, vanilla JS |
+| Backend | Node.js, Express |
+| ML Service | Flask (Python) |
+| Models | TensorFlow/Keras (X-ray classifier), HuggingFace Transformers + PyTorch (fracture detection ViT) |
+| Explainability | Grad-CAM |
+| Database | MongoDB |
+| Media storage | Cloudinary |
+| Reports | ReportLab (PDF generation) |
+| Infra | Docker, deployed on Render |
 
 ---
 
-## ✅ Before you start — what you need
+## 📸 How it works (user flow)
 
-- Node.js 18+ and Python 3.10+ (only if running outside Docker)
-- Docker (recommended — skips all the local Python/Node setup pain)
-- A MongoDB connection string ([MongoDB Atlas free tier](https://www.mongodb.com/cloud/atlas/register) works great for a hackathon)
-- A free [Cloudinary](https://cloudinary.com/users/register/free) account (uploaded x-rays, heatmaps, and PDFs are stored here, not on local disk)
-- Your trained model files, zipped and uploaded to Google Drive (steps below — this is the one non-obvious part)
-
----
-
-## 1️⃣ Get your model onto Google Drive
-
-The HuggingFace fracture-detection model is too large to commit to git, so
-it's fetched from Google Drive when the app starts.
-
-**Step-by-step:**
-
-1. On your machine, go to `x-rays-models/models/` — this should contain
-   things like `config.json`, `preprocessor_config.json`, and the weights
-   file for your fracture model.
-2. **Zip the *contents* of that folder** — not the folder itself. Select all
-   the files inside `models/`, right-click → compress/zip, so that when
-   someone unzips it, the files land directly (no extra nested folder in
-   between).
-3. Upload that `.zip` to Google Drive.
-4. Right-click the file in Drive → **Share** → change access to
-   **"Anyone with the link"** → Copy link.
-5. Your link will look like:
-   ```
-   https://drive.google.com/file/d/1AbCdEfGhIjKlMnOpQrStUvWxYz1234/view?usp=sharing
-   ```
-   The long string between `/d/` and `/view` is your **file ID**. Copy just
-   that part:
-   ```
-   1AbCdEfGhIjKlMnOpQrStUvWxYz1234
-   ```
-6. Save that ID — you'll paste it into `MODEL_GDRIVE_ID` in the next steps.
-
-> ⚠️ If sharing isn't set to "Anyone with the link," the download will fail
-> silently and Flask won't start. This is the #1 thing to double check if
-> the app won't boot.
+1. User signs up / logs in
+2. Uploads an X-ray image
+3. System validates it's an X-ray, then runs fracture detection
+4. Result is shown with a fracture/no-fracture verdict and a Grad-CAM
+   heatmap overlay
+5. User downloads a generated PDF report of the finding
 
 ---
 
-## 2️⃣ Run it locally with Docker (fastest path)
+## 🌱 What's Next
 
-This is the recommended way to run the whole thing — one command, no local
-Python/Node setup needed.
+- Expand supported X-ray regions beyond elbow/hand/knee
+- Multi-class fracture severity grading, not just binary detection
+- Doctor-review workflow for flagged cases
+- Mobile-first capture flow for point-of-care use
+
+---
+
+## ⚡ Getting Started
+
+### 1. Clone the repo
 
 ```bash
-# 1. Build the image
+git clone <your-repo-url>
+cd x-ray-app-main
+```
+
+### 2. Get the model files from Google Drive
+
+The fracture-detection model weights aren't stored in this repo (too
+large for git) — they're distributed via a Google Drive link.
+
+- Grab the shared model `.zip` from the Drive link provided with this
+  project.
+- Extract it into `x-rays-models/models/` so the files (`config.json`,
+  `preprocessor_config.json`, the weights file, etc.) sit directly inside
+  that folder.
+
+Alternatively, if you have the Drive file's ID, the app can download it
+automatically at startup — see step 4.
+
+### 3. Set up environment variables
+
+Copy the example files and fill in your own values:
+
+```bash
+cp AI-X-RAY-Detection-System/.env.example AI-X-RAY-Detection-System/.env
+cp x-rays-models/.env.example x-rays-models/.env
+```
+
+You'll need:
+- A MongoDB connection string (`MONGO_URI`)
+- A session secret (`SESSION_SECRET`)
+- Cloudinary credentials (`CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`,
+  `CLOUDINARY_API_SECRET`) for storing uploads, heatmaps, and PDFs
+- The Google Drive file ID for the model, if using automatic download
+  (`MODEL_GDRIVE_ID`)
+
+### 4. Run with Docker (recommended)
+
+```bash
 docker build -t xray-app .
 
-# 2. Run it, filling in your real values
 docker run -p 3000:3000 \
-  -e MONGO_URI="mongodb+srv://user:pass@cluster.mongodb.net/xray_app" \
-  -e SESSION_SECRET="any-long-random-string-here" \
-  -e MODEL_GDRIVE_ID="1AbCdEfGhIjKlMnOpQrStUvWxYz1234" \
+  -e MONGO_URI="your-mongo-uri" \
+  -e SESSION_SECRET="a-long-random-string" \
+  -e MODEL_GDRIVE_ID="your-drive-file-id" \
   -e CLOUDINARY_CLOUD_NAME="your-cloud-name" \
   -e CLOUDINARY_API_KEY="your-api-key" \
   -e CLOUDINARY_API_SECRET="your-api-secret" \
   xray-app
 ```
 
-3. Open **http://localhost:3000**
+If `MODEL_GDRIVE_ID` is set, the model is downloaded and unzipped
+automatically on container start — no manual extraction needed.
 
-On first start, `start.sh` will print:
-```
-Downloading fracture-detection model from Google Drive (id: ...)...
-Model ready in /app/x-rays-models/models
-Starting Flask ML service on 127.0.0.1:5000...
-```
-Once you see that, Node boots and the app is ready.
+Open **http://localhost:3000**.
 
----
+### 5. Run without Docker (for development)
 
-## 3️⃣ Run it locally without Docker (for active development)
-
-Only do this if you're actively editing code and want hot-reload — Docker
-is simpler for just running the app.
-
-**Flask service:**
 ```bash
+# Terminal 1 — Flask ML service
 cd x-rays-models
 pip install -r requirements.txt
-cp .env.example .env
-# manually download your model zip from Drive and extract it into ./models/
 python app.py
-```
-Runs on `http://127.0.0.1:5000`.
 
-**Node service (in a second terminal):**
-```bash
+# Terminal 2 — Node/Express app
 cd AI-X-RAY-Detection-System
 npm install
-cp .env.example .env
-# fill in MONGO_URI, SESSION_SECRET, and Cloudinary keys in .env
-npm run dev   # nodemon, hot-reload
+npm run dev
 ```
-Runs on `http://localhost:3000`.
 
----
+Node runs on `http://localhost:3000`, Flask on `http://127.0.0.1:5000`.
 
-## 4️⃣ Deploy live on Render
 
-This is what you'll want for the actual hackathon demo link.
-
-1. **Push the code to GitHub** (make sure `Dockerfile` stays at the repo
-   root).
-2. Go to **[render.com](https://render.com)** → **New +** → **Web Service**.
-3. Connect your GitHub account and pick this repo.
-4. Render should auto-detect **Runtime: Docker**. Leave Build Command and
-   Start Command **blank** — the Dockerfile handles it.
-5. **Instance type:** pick **Starter (2GB RAM)** or higher. The free tier
-   will very likely run out of memory loading `tensorflow` + `torch` + the
-   model together.
-6. Under **Environment**, add these variables:
-
-   | Variable | What to put |
-   |---|---|
-   | `MONGO_URI` | Your MongoDB Atlas connection string |
-   | `SESSION_SECRET` | Any long random string |
-   | `MODEL_GDRIVE_ID` | The file ID from Step 1 above |
-   | `CLOUDINARY_CLOUD_NAME` | From your Cloudinary dashboard |
-   | `CLOUDINARY_API_KEY` | From your Cloudinary dashboard |
-   | `CLOUDINARY_API_SECRET` | From your Cloudinary dashboard |
-
-   Don't set `PORT` — Render assigns it automatically.
-
-7. Click **Create Web Service**. Watch the logs — the build takes a few
-   minutes (tensorflow + torch are big). After it deploys, check the
-   *runtime* logs for the "Downloading fracture-detection model..." line to
-   confirm the Drive download worked.
-8. Once it says **Live**, open the Render URL, sign up/log in, and upload a
-   test X-ray through `/analyze` to confirm everything works end-to-end.
-
----
-
-## 🔑 Environment variable reference
-
-**Node (`AI-X-RAY-Detection-System/.env`)**
-
-| Variable | Required? | Notes |
-|---|---|---|
-| `MONGO_URI` | ✅ | MongoDB connection string |
-| `SESSION_SECRET` | ✅ | App won't boot without it |
-| `PORT` | ❌ | Defaults to 3000; leave unset on Render |
-| `FLASK_URL` | ❌ | Defaults to `http://127.0.0.1:5000` |
-| `CLOUDINARY_CLOUD_NAME` / `CLOUDINARY_API_KEY` / `CLOUDINARY_API_SECRET` | ✅ | Needed so uploads survive redeploys |
-
-**Flask (`x-rays-models/.env`, or set on the container)**
-
-| Variable | Required? | Notes |
-|---|---|---|
-| `MODEL_GDRIVE_ID` | ✅ (unless model already present) | From Step 1 above |
-| `FLASK_HOST` | ❌ | Leave as `127.0.0.1` — keeps Flask internal-only |
-| `PORT` | ❌ | Defaults to 5000 |
-| `FLASK_DEBUG` | ❌ | Keep `false` outside local dev |
-| `X_RAY_THRESHOLD` | ❌ | Defaults to `0.8` |
-
----
-
-## 🎤 Right before you demo — quick checklist
-
-- [ ] Drive model zip sharing is "Anyone with the link"
-- [ ] `MODEL_GDRIVE_ID` is set wherever you're running (local, Docker, or Render)
-- [ ] `SESSION_SECRET` and `MONGO_URI` are set — Node won't boot without them
-- [ ] Cloudinary keys are set — otherwise uploaded images/reports vanish
-- [ ] `FLASK_DEBUG=false` (or unset) on anything public-facing
-- [ ] Ran one real X-ray through `/analyze` end-to-end right before presenting
-- [ ] Have 2–3 sample X-ray images saved locally, ready to drag in live —
-      don't rely on finding one on the spot or on venue wifi being fast
