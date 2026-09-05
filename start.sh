@@ -4,6 +4,29 @@
 #  - Node (web app) binds to $PORT and is the only thing Render exposes
 set -e
 
+MODEL_DIR="/app/x-rays-models/models"
+
+# The HuggingFace fracture-classification model isn't committed to the repo
+# (too large for git). Instead it's fetched from a Google Drive share at
+# container start, controlled by MODEL_GDRIVE_ID. Expected Drive file: a
+# .zip of the models/ folder (config.json, preprocessor_config.json, the
+# weights file, etc. at the zip root, not nested one level down).
+if [ -z "$(ls -A "$MODEL_DIR" 2>/dev/null)" ]; then
+  if [ -z "$MODEL_GDRIVE_ID" ]; then
+    echo "ERROR: $MODEL_DIR is empty and MODEL_GDRIVE_ID is not set." >&2
+    echo "Set MODEL_GDRIVE_ID to the Google Drive file ID of the zipped model folder." >&2
+    exit 1
+  fi
+  echo "Downloading fracture-detection model from Google Drive (id: $MODEL_GDRIVE_ID)..."
+  mkdir -p "$MODEL_DIR"
+  gdown --id "$MODEL_GDRIVE_ID" -O /tmp/model.zip
+  unzip -o /tmp/model.zip -d "$MODEL_DIR"
+  rm -f /tmp/model.zip
+  echo "Model ready in $MODEL_DIR"
+else
+  echo "Model already present in $MODEL_DIR, skipping download."
+fi
+
 echo "Starting Flask ML service on 127.0.0.1:5000..."
 cd /app/x-rays-models
 python app.py &
