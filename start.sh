@@ -24,7 +24,7 @@ if [ -z "$(ls -A "$MODEL_DIR" 2>/dev/null)" ]; then
   fi
   echo "Downloading fracture-detection model from Google Drive..."
   mkdir -p "$MODEL_DIR"
-  gdown --fuzzy "$MODEL_GDRIVE_LINK" -O /tmp/model.zip
+  python3 -m gdown --fuzzy "$MODEL_GDRIVE_LINK" -O /tmp/model.zip
   unzip -o /tmp/model.zip -d "$MODEL_DIR"
   rm -f /tmp/model.zip
   echo "Model ready in $MODEL_DIR"
