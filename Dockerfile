@@ -1,9 +1,12 @@
-FROM node:20-bullseye
+FROM node:20-bookworm
+
+ENV DEBIAN_FRONTEND=noninteractive
 
 # Install Python 3 alongside Node
-RUN apt-get update && apt-get install -y \
-    python3 python3-pip python3-venv \
-    libgl1 unzip \
+RUN apt-get update --fix-missing \
+    && apt-get install -y --no-install-recommends \
+       python3 python3-pip python3-venv \
+       libgl1 unzip \
     && rm -rf /var/lib/apt/lists/* \
     && ln -sf /usr/bin/python3 /usr/bin/python
 
@@ -11,7 +14,7 @@ WORKDIR /app
 
 # --- Python side ---
 COPY x-rays-models/requirements.txt ./x-rays-models/requirements.txt
-RUN pip3 install --no-cache-dir -r x-rays-models/requirements.txt
+RUN pip3 install --no-cache-dir --break-system-packages -r x-rays-models/requirements.txt
 
 # --- Node side ---
 COPY AI-X-RAY-Detection-System/package*.json ./AI-X-RAY-Detection-System/
