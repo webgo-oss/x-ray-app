@@ -14,7 +14,8 @@ WORKDIR /app
 
 # --- Python side ---
 COPY x-rays-models/requirements.txt ./x-rays-models/requirements.txt
-RUN pip3 install --no-cache-dir --break-system-packages -r x-rays-models/requirements.txt
+RUN python3 -m pip install --no-cache-dir --break-system-packages -r x-rays-models/requirements.txt \
+    && python3 -c "import gdown; print('gdown OK:', gdown.__version__)"
 
 # --- Node side ---
 COPY AI-X-RAY-Detection-System/package*.json ./AI-X-RAY-Detection-System/
