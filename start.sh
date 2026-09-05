@@ -27,6 +27,23 @@ if [ -z "$(ls -A "$MODEL_DIR" 2>/dev/null)" ]; then
   python3 -m gdown "$MODEL_GDRIVE_LINK" -O /tmp/model.zip
   unzip -o /tmp/model.zip -d "$MODEL_DIR"
   rm -f /tmp/model.zip
+
+  # Self-heal a common zipping mistake: if the zip included the "models"
+  # folder itself (not just its contents), extraction lands one level too
+  # deep as $MODEL_DIR/models/config.json etc. Detect that and flatten it.
+  if [ -d "$MODEL_DIR/models" ] && [ ! -f "$MODEL_DIR/config.json" ]; then
+    echo "Detected nested models/models folder from the zip — flattening..."
+    mv "$MODEL_DIR"/models/* "$MODEL_DIR"/
+    rmdir "$MODEL_DIR/models"
+  fi
+
+  if [ ! -f "$MODEL_DIR/config.json" ]; then
+    echo "ERROR: $MODEL_DIR/config.json not found after extraction and flattening." >&2
+    echo "Check that your Drive zip contains the model files directly, not nested in another folder." >&2
+    find "$MODEL_DIR" -maxdepth 2 >&2
+    exit 1
+  fi
+
   echo "Model ready in $MODEL_DIR"
 else
   echo "Model already present in $MODEL_DIR, skipping download."
