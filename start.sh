@@ -4,22 +4,27 @@
 #  - Node (web app) binds to $PORT and is the only thing Render exposes
 set -e
 
+# ============================================================
+# PASTE YOUR GOOGLE DRIVE MODEL LINK HERE (full share link or file ID)
+MODEL_GDRIVE_LINK="https://drive.google.com/file/d/1U5vMqL6OJovJwI1HGt4dZ3O54JCxeOWE/view?usp=drive_link"
+# ============================================================
+
 MODEL_DIR="/app/x-rays-models/models"
 
 # The HuggingFace fracture-classification model isn't committed to the repo
-# (too large for git). Instead it's fetched from a Google Drive share at
-# container start, controlled by MODEL_GDRIVE_ID. Expected Drive file: a
-# .zip of the models/ folder (config.json, preprocessor_config.json, the
-# weights file, etc. at the zip root, not nested one level down).
+# (too large for git). Instead it's fetched from the Google Drive link above
+# at container start. Expected Drive file: a .zip of the models/ folder
+# (config.json, preprocessor_config.json, the weights file, etc. at the zip
+# root, not nested one level down).
 if [ -z "$(ls -A "$MODEL_DIR" 2>/dev/null)" ]; then
-  if [ -z "$MODEL_GDRIVE_ID" ]; then
-    echo "ERROR: $MODEL_DIR is empty and MODEL_GDRIVE_ID is not set." >&2
-    echo "Set MODEL_GDRIVE_ID to the Google Drive file ID of the zipped model folder." >&2
+  if [ -z "$MODEL_GDRIVE_LINK" ] || [ "$MODEL_GDRIVE_LINK" = "<here drive link>" ]; then
+    echo "ERROR: $MODEL_DIR is empty and MODEL_GDRIVE_LINK is not set." >&2
+    echo "Edit start.sh and paste your Google Drive link/file ID into MODEL_GDRIVE_LINK." >&2
     exit 1
   fi
-  echo "Downloading fracture-detection model from Google Drive (id: $MODEL_GDRIVE_ID)..."
+  echo "Downloading fracture-detection model from Google Drive..."
   mkdir -p "$MODEL_DIR"
-  gdown --id "$MODEL_GDRIVE_ID" -O /tmp/model.zip
+  gdown --fuzzy "$MODEL_GDRIVE_LINK" -O /tmp/model.zip
   unzip -o /tmp/model.zip -d "$MODEL_DIR"
   rm -f /tmp/model.zip
   echo "Model ready in $MODEL_DIR"
