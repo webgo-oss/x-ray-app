@@ -182,6 +182,6 @@ if __name__ == '__main__':
     # it. Override FLASK_HOST/PORT only when you know why (e.g. containerized
     # deployment where Node and Flask are separate containers).
     host = os.environ.get('FLASK_HOST', '127.0.0.1')
-    port = int(os.environ.get('PORT', 5000))
+    port = int(os.environ.get('PORT-xray', 5000))
     debug = os.environ.get('FLASK_DEBUG', 'false').lower() == 'true'
     app.run(host=host, port=port, debug=debug, use_reloader=False)
