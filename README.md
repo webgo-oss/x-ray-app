@@ -1,4 +1,4 @@
-# 🩻 AI X-Ray Detection System
+# AI X-Ray Detection System
 
 **AI-powered fracture detection from X-ray images — with explainable
 visual heatmaps and instant PDF medical reports.**
@@ -12,14 +12,14 @@ visual heatmaps and instant PDF medical reports.**
 
 ---
 
-## 🚀 The Problem
+## The Problem
 
 Reading X-rays takes trained radiologists, and in under-resourced clinics,
 overloaded ERs, or remote areas, that expertise isn't always available fast
 enough. A missed or delayed fracture read can mean a patient goes home
 untreated.
 
-## 💡 Our Solution
+## Our Solution
 
 **AI X-Ray Detection System** gives anyone — a clinician, a triage nurse, a
 student — an instant second opinion on an X-ray. Upload an image and the
@@ -39,24 +39,24 @@ anonymous one-off tool.
 
 ---
 
-## ✨ Features
+## Features
 
-- 🔐 **Secure authentication** — session-based login with CSRF protection
-- 🖼️ **Drag-and-drop X-ray upload** — elbow, hand, and knee X-rays supported
-- 🧠 **Two-stage ML pipeline** — a lightweight Keras gatekeeper model filters
+- **Secure authentication** — session-based login with CSRF protection
+- **Drag-and-drop X-ray upload** — elbow, hand, and knee X-rays supported
+- **Two-stage ML pipeline** — a lightweight Keras gatekeeper model filters
   non-X-ray images before the heavier fracture-detection model runs
-- 🔥 **Grad-CAM explainability** — visual heatmap overlay showing the exact
+- **Grad-CAM explainability** — visual heatmap overlay showing the exact
   region the model attended to, not just a bare "fracture / no fracture" label
-- 📄 **One-click PDF reports** — generated server-side and ready to download
+- **One-click PDF reports** — generated server-side and ready to download
   or share
-- ☁️ **Cloud-backed storage** — uploads, heatmaps, and reports persist via
+- **Cloud-backed storage** — uploads, heatmaps, and reports persist via
   Cloudinary, so nothing is lost on redeploys
-- 🐳 **Single-container deployment** — the whole stack (frontend, backend,
+- **Single-container deployment** — the whole stack (frontend, backend,
   and both ML models) ships as one Docker image
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```
  Browser
@@ -79,7 +79,7 @@ Node/Express is the only public surface.
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 | Layer | Tech |
 |---|---|
@@ -95,7 +95,7 @@ Node/Express is the only public surface.
 
 ---
 
-## 📸 How it works (user flow)
+## How It Works (User Flow)
 
 1. User signs up / logs in
 2. Uploads an X-ray image
@@ -106,7 +106,7 @@ Node/Express is the only public surface.
 
 ---
 
-## 🌱 What's Next
+## What's Next
 
 - Expand supported X-ray regions beyond elbow/hand/knee
 - Multi-class fracture severity grading, not just binary detection
@@ -115,12 +115,12 @@ Node/Express is the only public surface.
 
 ---
 
-## ⚡ Getting Started
+## Getting Started
 
 ### 1. Clone the repo
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/webgo-oss/x-ray-app
 cd x-ray-app-main
 ```
 
@@ -129,16 +129,31 @@ cd x-ray-app-main
 The fracture-detection model weights aren't stored in this repo (too
 large for git) — they're distributed via a Google Drive link.
 
-- Grab the shared model `.zip` from the Drive link provided with this
-  project.
+**Model download link:** `<PASTE_GOOGLE_DRIVE_LINK_HERE>`
+
+- Grab the shared model `.zip` from the Drive link above.
 - Extract it into `x-rays-models/models/` so the files (`config.json`,
   `preprocessor_config.json`, the weights file, etc.) sit directly inside
   that folder.
 
 Alternatively, if you have the Drive file's ID, the app can download it
-automatically at startup — see step 4.
+automatically at startup — see step 5.
 
-### 3. Set up environment variables
+### 3. Test images
+
+Sample X-rays for testing the upload flow are included under
+`test-xrays/`, split into two folders:
+
+```
+test-xrays/
+├── Fractured/       # sample X-rays with a fracture present
+└── Non_fractured/   # sample X-rays with no fracture
+```
+
+Use these to quickly verify both prediction paths (fracture / no fracture)
+without needing real patient data.
+
+### 4. Set up environment variables
 
 Copy the example files and fill in your own values:
 
@@ -155,7 +170,7 @@ You'll need:
 - The Google Drive file ID for the model, if using automatic download
   (`MODEL_GDRIVE_ID`)
 
-### 4. Run with Docker (recommended)
+### 5. Run with Docker (recommended)
 
 ```bash
 docker build -t xray-app .
@@ -175,7 +190,7 @@ automatically on container start — no manual extraction needed.
 
 Open **http://localhost:3000**.
 
-### 5. Run without Docker (for development)
+### 6. Run without Docker (for development)
 
 ```bash
 # Terminal 1 — Flask ML service
@@ -190,5 +205,4 @@ npm run dev
 ```
 
 Node runs on `http://localhost:3000`, Flask on `http://127.0.0.1:5000`.
-
 
