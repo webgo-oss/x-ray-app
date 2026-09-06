@@ -129,7 +129,7 @@ cd x-ray-app-main
 The fracture-detection model weights aren't stored in this repo (too
 large for git) — they're distributed via a Google Drive link.
 
-**Model download link:** `https://drive.google.com/file/d/1U5vMqL6OJovJwI1HGt4dZ3O54JCxeOWE/view?usp=drive_link`
+**Model download link:** `<PASTE_GOOGLE_DRIVE_LINK_HERE>`
 
 - Grab the shared model `.zip` from the Drive link above.
 - Extract it into `x-rays-models/models/` so the files (`config.json`,

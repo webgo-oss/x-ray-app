@@ -51,7 +51,13 @@ fi
 
 echo "Starting Flask ML service on 127.0.0.1:5000..."
 cd /app/x-rays-models
-python app.py &
+# app.run()'s built-in dev server is single-threaded — it can only handle
+# ONE request at a time, so a single slow inference call freezes everything
+# else (even static assets) until it finishes. gunicorn with threads lets it
+# handle several requests concurrently. Kept to 1 worker process (not
+# threads) since each worker duplicates the loaded models in memory, which
+# this container's RAM budget can't afford.
+gunicorn --bind 127.0.0.1:5000 --workers 1 --threads 4 --timeout 120 app:app &
 FLASK_PID=$!
 
 echo "Starting Node.js app..."
