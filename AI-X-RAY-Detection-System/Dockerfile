@@ -2,10 +2,10 @@ FROM node:20-bookworm
 
 WORKDIR /app
 
-COPY AI-X-RAY-Detection-System/package*.json ./
+COPY package*.json ./
 RUN npm ci --omit=dev
 
-COPY AI-X-RAY-Detection-System ./
+COPY . ./
 
 EXPOSE 3000
 

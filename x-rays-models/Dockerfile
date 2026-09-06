@@ -8,12 +8,11 @@ RUN apt-get update --fix-missing \
 
 WORKDIR /app
 
-COPY x-rays-models/requirements.txt ./requirements.txt
+COPY requirements.txt ./requirements.txt
 RUN python3 -m pip install --no-cache-dir -r requirements.txt \
     && python3 -c "import gdown; print('gdown OK:', gdown.__version__)"
 
-COPY x-rays-models ./
-COPY start-flask.sh ./start-flask.sh
+COPY . ./
 RUN chmod +x start-flask.sh
 
 # This service IS the public surface now (no Node in front of it in this
