@@ -24,7 +24,29 @@ if [ -z "$(ls -A "$MODEL_DIR" 2>/dev/null)" ]; then
   fi
   echo "Downloading fracture-detection model from Google Drive..."
   mkdir -p "$MODEL_DIR"
-  python3 -m gdown "$MODEL_GDRIVE_LINK" -O /tmp/model.zip
+
+  # gdown has no built-in timeout, and Google Drive occasionally stalls large
+  # automated downloads mid-transfer without erroring out — it just hangs.
+  # Wrap it in `timeout` and retry a few times so a stall fails fast instead
+  # of hanging until Render's port-scan timeout kills the whole deploy.
+  DOWNLOAD_OK=0
+  for attempt in 1 2 3; do
+    echo "Download attempt $attempt/3..."
+    rm -f /tmp/model.zip
+    if timeout 180 python3 -m gdown "$MODEL_GDRIVE_LINK" -O /tmp/model.zip; then
+      DOWNLOAD_OK=1
+      break
+    fi
+    echo "Attempt $attempt failed or stalled — retrying..."
+    sleep 5
+  done
+
+  if [ "$DOWNLOAD_OK" -ne 1 ]; then
+    echo "ERROR: Failed to download the model from Google Drive after 3 attempts." >&2
+    echo "This is usually a transient stall on Drive's end — try redeploying." >&2
+    exit 1
+  fi
+
   unzip -o /tmp/model.zip -d "$MODEL_DIR"
   rm -f /tmp/model.zip
 
