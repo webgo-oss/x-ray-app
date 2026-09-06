@@ -45,7 +45,9 @@ function renderSection(index) {
   const section = boneSections[index];
 
   // LEFT content
-  document.querySelector(".con-for-info-left").innerHTML = `
+  const leftPanel = document.querySelector(".con-for-info-left");
+  if (leftPanel) {
+    leftPanel.innerHTML = `
     <div class="fade-in">
       <h4>Fracture Detection</h4>
       <h1>${section.titleBig}</h1>
@@ -56,11 +58,16 @@ function renderSection(index) {
       </table>
     </div>
   `;
+  }
 
-  // RIGHT text (not touching image)
-  document.getElementById("rightParagraph").innerText = section.rightParagraph;
-  document.getElementById("quoteText").innerText = section.quote;
-  document.getElementById("xrayBtn").innerText = section.buttonText;
+  // RIGHT text (not touching image) — only present on pages with the bone
+  // carousel; guard each lookup so this script doesn't crash on other pages.
+  const rightParagraph = document.getElementById("rightParagraph");
+  const quoteText = document.getElementById("quoteText");
+  const xrayBtn = document.getElementById("xrayBtn");
+  if (rightParagraph) rightParagraph.innerText = section.rightParagraph;
+  if (quoteText) quoteText.innerText = section.quote;
+  if (xrayBtn) xrayBtn.innerText = section.buttonText;
 }
 
 // Controls both image + content together
@@ -88,5 +95,3 @@ renderSection(activeSectionIndex);
   function toggleSidebar() {
     document.getElementById("sidebar").classList.toggle("show");
   }
-
-
