@@ -3,7 +3,7 @@ python-dotenv
 tensorflow
 torch
 transformers
-opencv-python
+opencv-python-headless
 numpy
 Pillow
 reportlab
