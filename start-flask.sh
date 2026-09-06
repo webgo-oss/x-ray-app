@@ -6,7 +6,7 @@ set -e
 
 # ============================================================
 # PASTE YOUR GOOGLE DRIVE MODEL LINK HERE (full share link or file ID)
-MODEL_GDRIVE_LINK="<here drive link>"
+MODEL_GDRIVE_LINK="https://drive.google.com/file/d/1U5vMqL6OJovJwI1HGt4dZ3O54JCxeOWE/view?usp=drive_link"
 # ============================================================
 
 MODEL_DIR="/app/models"
